@@ -8,7 +8,12 @@ import { isEmptyHtml } from "@/lib/html";
 import { sanitizeRichText } from "@/lib/sanitize";
 import { createClient } from "@/lib/supabase/server";
 import type { ActionResult } from "@/lib/types";
-import { campaignSchema, type CampaignInput } from "./CampaignForm.types";
+import {
+  campaignSchema,
+  COVER_EXTENSIONS,
+  getCoverFileError,
+  type CampaignInput,
+} from "./CampaignForm.types";
 
 const INVALID_MESSAGE = "Periksa kembali data campaign";
 
@@ -77,4 +82,27 @@ export async function saveCampaign(
 
   revalidatePath("/campaigns");
   return { success: true, data: { uuid: data.uuid } };
+}
+
+// Dipanggil segera saat admin memilih file. File lama yang diganti tidak dihapus.
+export async function uploadCover(
+  file: File,
+): Promise<ActionResult<{ url: string }>> {
+  await requireAdmin();
+
+  const fileError = getCoverFileError(file);
+  if (fileError) return { success: false, message: fileError };
+
+  const supabase = await createClient();
+  const bucket = supabase.storage.from("campaign-covers");
+  const path = `${crypto.randomUUID()}.${COVER_EXTENSIONS[file.type]}`;
+  const { error } = await bucket.upload(path, file, {
+    contentType: file.type,
+  });
+  if (error) {
+    return { success: false, message: "Cover gagal diunggah. Coba lagi." };
+  }
+
+  const { data } = bucket.getPublicUrl(path);
+  return { success: true, data: { url: data.publicUrl } };
 }
