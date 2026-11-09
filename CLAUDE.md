@@ -12,9 +12,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `../sbn-supabase`: migration, storage bucket, dan generate types Supabase. Skema database diubah di sana, bukan di sini.
 - `../../planning/init.md`: spesifikasi utama (routes, data model, RLS, design pattern). `../../planning/001-fondasi.md`: backlog fondasi (task `FND001`–`FND017`). Baca dokumen ini sebelum mengerjakan fitur.
 
-Saat ini app masih berupa skeleton: baru ada form login di `/auth/login`, dan submit-nya hanya `console.log`. `lib/supabase/`, `lib/auth.ts`, `lib/types.ts`, dan `proxy.ts` **belum ada**. Pola di bawah adalah target dari `planning/init.md`.
+Fondasi sudah selesai: Supabase client, `proxy.ts`, login admin, proteksi halaman, dan sidebar. Halaman modul (campaign, transaksi, donatur, blog, pengaturan) belum ada; menunya sudah tersedia di sidebar (`components/layout/navigation.ts`).
 
-Route Office yang direncanakan: `/auth/login`, `/` (dashboard), `/campaigns`, `/transactions`, `/donors`, `/blog/posts`, `/blog/categories`, `/settings`. Navigasinya memakai sidebar dengan layout responsive.
+Route Office: `/auth/login`, `/` (dashboard), `/campaigns`, `/transactions`, `/donors`, `/blog/posts`, `/blog/categories`, `/settings`. Semua halaman admin dibuat di route group `app/(dashboard)/`, supaya ikut layout sidebar dan `AdminGate`.
 
 ## Perintah
 
@@ -27,7 +27,9 @@ npx tsc --noEmit       # type check
 npx shadcn add <nama>  # tambah komponen UI ke components/ui/
 ```
 
-Belum ada test runner.
+Belum ada test runner. Setelah memindah atau menghapus route, `npx tsc --noEmit` bisa error karena `.next/types/validator.ts` masih menyimpan route lama; jalankan `npm run build` untuk menulis ulangnya.
+
+`lib/supabase/database.types.ts` di-generate dari `../sbn-supabase` dengan `npm run db:types`. Jangan diedit manual.
 
 ## Next.js 16: Hal yang Berbeda
 
@@ -35,7 +37,8 @@ Belum ada test runner.
 - `middleware.ts` sudah diganti `proxy.ts`. Rujukan: `node_modules/next/dist/docs/01-app/01-getting-started/16-proxy.md`. Refresh session Supabase dijalankan di sini.
 - `LayoutProps<"/">` / `PageProps` adalah tipe global hasil typegen Next, jadi tidak perlu di-import.
 - Tailwind v4 dimuat lewat loader `@tailwindcss/turbopack` di `next.config.ts`. Tidak ada `tailwind.config` maupun PostCSS config; token tema ada di `app/globals.css`.
-- Komponen shadcn memakai style `base-nova`, yang dibangun di atas `@base-ui/react` (bukan Radix). `cn` berasal dari package npm `cn` (pengganti clsx + tailwind-merge). Komponen `components/ui/*` mengimpornya langsung dari `"cn"`, sedangkan `lib/utils.ts` hanya me-re-export-nya.
+- Komponen shadcn memakai style `base-nova`, yang dibangun di atas `@base-ui/react` (bukan Radix). Komposisi elemen memakai prop `render` (contoh: `<SidebarMenuButton render={<Link href="/" />}>`), bukan `asChild`. `cn` berasal dari package npm `cn` (pengganti clsx + tailwind-merge). Komponen `components/ui/*` mengimpornya langsung dari `"cn"`, sedangkan `lib/utils.ts` hanya me-re-export-nya.
+- Dengan `cacheComponents`, kode yang tidak deterministik saat prerender (`Math.random()`, `Date.now()`) membuat build gagal. Contohnya `SidebarMenuSkeleton` bawaan shadcn, jadi fallback memakai `Skeleton`. `usePathname()` di luar `<Suspense>` juga akan menunda render begitu ada route dengan param dinamis (seperti `/campaigns/[id]`). Bila build gagal karena itu, bungkus `AppSidebar` dengan `<Suspense>`.
 
 ## Arsitektur
 
@@ -48,10 +51,25 @@ Belum ada test runner.
   - `actions.ts`: Server Action (`"use server"`).
   - `components/`: komponen khusus halaman tersebut.
   - `hooks/use<Nama>.ts`: logika client (react-hook-form, pemanggilan action, query).
-- `lib/supabase/`: `client.ts` (browser), `server.ts` (session user, RLS berlaku), `admin.ts` (service role), dan `database.types.ts` (hasil generate dari `sbn-supabase`).
-- `lib/auth.ts`: `getCurrentUser()` dan `requireAdmin()`.
+- `components/layout/`: kerangka halaman admin. Isinya `AdminGate` (memanggil `requireAdmin()`), `AppSidebar` dan `navigation.ts` (daftar menu dan `isActivePath()`), `NavUser` (nama/email admin dan tombol Keluar), serta `actions.ts` (`logout()`).
+- `lib/supabase/`:
+  - `client.ts` (browser);
+  - `server.ts` (session user, RLS berlaku);
+  - `admin.ts` (service role);
+  - `proxy.ts` (`updateSession()` untuk `proxy.ts` di root);
+  - `database.types.ts` (hasil generate).
+- `lib/auth.ts`:
+  - `getCurrentUser()`, dibungkus `React.cache()` sehingga cukup satu query per request walau dipanggil gate, sidebar, dan halaman;
+  - `isActiveAdmin()`;
+  - `requireAdmin()`.
 
-Kode login yang sudah ada belum sepenuhnya mengikuti pola ini, karena schema masih berada di `hooks/useLogin.ts`. Ikuti pola target saat mengubahnya.
+`containers/auth/login/` adalah contoh lengkap pola ini (schema, action, hook, form). Ikuti pola tersebut saat membuat modul baru.
+
+### Alur auth
+
+1. `proxy.ts` me-refresh session (`getClaims()`). Tanpa session dan path bukan `/auth/*`, request diarahkan ke `/auth/login`. Proxy tidak mengecek role.
+2. `app/(dashboard)/layout.tsx` merender shell sidebar (bagian statis) dan membungkus halaman dengan `<Suspense><AdminGate>`.
+3. Di halaman login, `RedirectIfAdmin` mengarahkan admin yang sudah login ke `/`. Pengecekan ini sengaja tidak ditaruh di proxy: admin nonaktif yang masih punya session akan terjebak redirect bolak-balik.
 
 ### Mutasi data: Server Action + Zod
 
@@ -59,14 +77,16 @@ Semua perubahan data (termasuk login/logout) dilakukan lewat Server Action. Komp
 
 1. Schema zod ditulis sekali di `<Nama>.types.ts`, lalu dipakai oleh `zodResolver` di client dan `schema.safeParse()` di server. Schema tidak boleh ditaruh di `actions.ts`, karena file `"use server"` hanya boleh mengekspor async function. Pesan validasi ditulis dalam Bahasa Indonesia.
 2. Urutan langkah di dalam Server Action:
-   1. `await requireAdmin()` di baris pertama.
+   1. `await requireAdmin()` di baris pertama. Pengecualiannya hanya `login()` (belum ada session) dan `logout()` (user nonaktif pun harus bisa keluar).
    2. `safeParse`; bila gagal, return `z.flattenError(result.error).fieldErrors`.
    3. Akses Supabase lewat `lib/supabase/server.ts`.
    4. `revalidatePath()` / `redirect()` bila perlu.
    5. Return `ActionResult`.
 3. Hook memanggil action dari `handleSubmit`:
    - Status loading memakai `formState.isSubmitting`.
-   - `fieldErrors` dipasang ke field lewat `setError`, sedangkan `message` ditampilkan di atas form.
+   - `fieldErrors` dipasang ke field lewat `setError`, sedangkan `message` dipasang ke `setError("root", ...)` dan ditampilkan di atas form.
+   - Bila action melakukan `redirect()`, hasil `await action()` di client tidak bisa diandalkan. Karena itu cek dengan `if (!result || result.success) return;`.
+   - `redirect()` di dalam action harus berada di luar `try/catch`.
    - Setelah action berhasil, panggil `queryClient.invalidateQueries({ queryKey: ["<modul>"] })`.
 
 ```ts

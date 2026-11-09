@@ -1,36 +1,72 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SBN Office
 
-## Getting Started
+Panel admin SBN Crowdfunding Platform untuk mengelola campaign, transaksi donasi, donatur, blog, dan pengaturan. Dibangun dengan Next.js 16, Supabase (Database, Auth, Storage), Tailwind, dan shadcn.
 
-First, run the development server:
+Repository terkait:
+
+- [`sbn-supabase`](https://github.com/arizkyana/sbn-supabase): migration database, storage, generate types, dan cara membuat akun admin.
+- [`sbn-donatur`](https://github.com/arizkyana/sbn-donatur): aplikasi publik untuk donatur.
+
+## Prasyarat
+
+- Node.js ≥ 20.9 dan npm
+- Akses ke Supabase project SBN (URL, publishable key, dan service role key)
+- Akun admin (lihat README `sbn-supabase`, bagian "Membuat akun admin")
+
+## Menjalankan di lokal
 
 ```bash
+npm install
+# buat .env.local dan isi variabel di bawah
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Buka http://localhost:3000. Tanpa session, semua halaman diarahkan ke `/auth/login`. Hanya user dengan role `ADMIN` dan `is_active = true` yang bisa masuk.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Perintah lain:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run build      # production build
+npm run start      # menjalankan hasil build
+npm run lint       # ESLint
+npx tsc --noEmit   # type check
+```
 
-## Learn More
+## Environment variables
 
-To learn more about Next.js, take a look at the following resources:
+Ditulis di `.env.local` (tidak di-commit). Rujukan lengkap ada di tabel Environment variables pada `planning/init.md`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Variabel | Keterangan |
+| --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | URL Supabase project |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Publishable key Supabase |
+| `SUPABASE_SERVICE_ROLE_KEY` | Hanya di server. Untuk transaksi, ban user, dan export |
+| `MIDTRANS_SERVER_KEY` | Hanya di server. Untuk cek ulang status transaksi |
+| `MIDTRANS_IS_PRODUCTION` | `false` sampai go-live |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Database types
 
-## Deploy on Vercel
+`lib/supabase/database.types.ts` di-generate dari skema Supabase. Setiap ada migration baru, jalankan dari repository `sbn-supabase`:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+npm run db:types
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Lalu commit file types yang berubah di repository ini.
+
+## Deploy ke VPS
+
+Mengikuti FND016 di `planning/001-fondasi.md`:
+
+1. Siapkan VPS dengan Node.js ≥ 20.9, Nginx, certbot, dan PM2.
+2. Clone repository, lalu buat `.env.local` di server. Environment variables tidak disimpan di repository.
+3. Build dan jalankan dengan port khusus untuk aplikasi ini:
+
+   ```bash
+   npm ci
+   npm run build
+   pm2 start npm --name sbn-office -- start -- -p <port>
+   ```
+
+4. Atur Nginx sebagai reverse proxy ke `<port>` untuk domain office (production: `office.sobatbaik.org`), lalu pasang SSL dengan certbot.
+5. Di Supabase Dashboard → Authentication → URL Configuration, tambahkan URL aplikasi ke Redirect URLs.
