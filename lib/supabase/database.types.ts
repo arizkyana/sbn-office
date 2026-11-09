@@ -321,6 +321,14 @@ export type Database = {
         }
         Relationships: []
       }
+      dashboard_summary: {
+        Row: {
+          donor_count: number | null
+          success_count: number | null
+          total_collected: number | null
+        }
+        Relationships: []
+      }
       public_donations: {
         Row: {
           amount: number | null
