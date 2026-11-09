@@ -10,9 +10,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - `../sbn-donatur`: app publik untuk donatur, mengikuti pola source code app ini.
 - `../sbn-supabase`: migration, storage bucket, dan generate types Supabase. Skema database diubah di sana, bukan di sini.
-- `../../planning/init.md`: spesifikasi utama (routes, data model, RLS, design pattern). `../../planning/001-fondasi.md`: backlog fondasi (task `FND001`–`FND017`). Baca dokumen ini sebelum mengerjakan fitur.
+- `../../planning/init.md`: spesifikasi utama (routes, data model, RLS, design pattern). `../../planning/001-fondasi.md`: backlog fondasi (task `FND001`–`FND017`). `../../planning/002-campaign.md`: backlog campaign (task `CMP001`–`CMP012`). Baca dokumen ini sebelum mengerjakan fitur.
 
-Fondasi sudah selesai: Supabase client, `proxy.ts`, login admin, proteksi halaman, dan sidebar. Halaman modul (campaign, transaksi, donatur, blog, pengaturan) belum ada; menunya sudah tersedia di sidebar (`components/layout/navigation.ts`).
+Fondasi sudah selesai: Supabase client, `proxy.ts`, login admin, proteksi halaman, dan sidebar. Modul campaign (`/campaigns`, `/campaigns/new`, `/campaigns/[uuid]`) ada di `containers/campaigns/`. Halaman modul lain (transaksi, donatur, blog, pengaturan) belum ada; menunya sudah tersedia di sidebar (`components/layout/navigation.ts`).
 
 Route Office: `/auth/login`, `/` (dashboard), `/campaigns`, `/transactions`, `/donors`, `/blog/posts`, `/blog/categories`, `/settings`. Semua halaman admin dibuat di route group `app/(dashboard)/`, supaya ikut layout sidebar dan `AdminGate`.
 
@@ -38,7 +38,7 @@ Belum ada test runner. Setelah memindah atau menghapus route, `npx tsc --noEmit`
 - `LayoutProps<"/">` / `PageProps` adalah tipe global hasil typegen Next, jadi tidak perlu di-import.
 - Tailwind v4 dimuat lewat loader `@tailwindcss/turbopack` di `next.config.ts`. Tidak ada `tailwind.config` maupun PostCSS config; token tema ada di `app/globals.css`.
 - Komponen shadcn memakai style `base-nova`, yang dibangun di atas `@base-ui/react` (bukan Radix). Komposisi elemen memakai prop `render` (contoh: `<SidebarMenuButton render={<Link href="/" />}>`), bukan `asChild`. `cn` berasal dari package npm `cn` (pengganti clsx + tailwind-merge). Komponen `components/ui/*` mengimpornya langsung dari `"cn"`, sedangkan `lib/utils.ts` hanya me-re-export-nya.
-- Dengan `cacheComponents`, kode yang tidak deterministik saat prerender (`Math.random()`, `Date.now()`) membuat build gagal. Contohnya `SidebarMenuSkeleton` bawaan shadcn, jadi fallback memakai `Skeleton`. `usePathname()` di luar `<Suspense>` juga akan menunda render begitu ada route dengan param dinamis (seperti `/campaigns/[id]`). Bila build gagal karena itu, bungkus `AppSidebar` dengan `<Suspense>`.
+- Dengan `cacheComponents`, kode yang tidak deterministik saat prerender (`Math.random()`, `Date.now()`) membuat build gagal. Contohnya `SidebarMenuSkeleton` bawaan shadcn, jadi fallback memakai `Skeleton`. `usePathname()` di luar `<Suspense>` juga akan menunda render begitu ada route dengan param dinamis (seperti `/campaigns/[uuid]`). Karena itu `AppSidebar` dibungkus `<Suspense>` di `app/(dashboard)/layout.tsx`.
 
 ## Arsitektur
 
@@ -61,9 +61,12 @@ Belum ada test runner. Setelah memindah atau menghapus route, `npx tsc --noEmit`
 - `lib/auth.ts`:
   - `getCurrentUser()`, dibungkus `React.cache()` sehingga cukup satu query per request walau dipanggil gate, sidebar, dan halaman;
   - `isActiveAdmin()`;
-  - `requireAdmin()`.
+  - `requireAdmin()` (mengembalikan admin yang login, termasuk `id` untuk kolom `users_id`).
+- Helper bersama di `lib/`: `slug.ts` (`slugify()`), `html.ts` (`isEmptyHtml()`), `sanitize.ts` (`sanitizeRichText()`, server-only, allowlist sama dengan output editor), `date.ts` (konversi tanggal Asia/Jakarta untuk `<input type="date">` dan `timestamptz`), `campaign.ts` (label/opsi status, `getProgressPercent()`).
+- `components/editor/RichTextEditor.tsx`: editor Tiptap (HTML) yang dipakai bersama campaign, blog, dan pengaturan lewat `Controller` react-hook-form. `hooks/use-debounced-value.ts` untuk pencarian di halaman daftar.
+- Fungsi baca data di server (Server Component) ditaruh di `containers/<modul>/<halaman>/queries.ts` dan dibungkus `React.cache()`, contoh `getCampaignByUuid()`.
 
-`containers/auth/login/` adalah contoh lengkap pola ini (schema, action, hook, form). Ikuti pola tersebut saat membuat modul baru.
+`containers/auth/login/` adalah contoh lengkap pola ini (schema, action, hook, form). `containers/campaigns/form/` (form tambah/ubah + upload file) dan `containers/campaigns/list/` (daftar dengan pagination, pencarian, dan filter) adalah contoh untuk modul CRUD. Ikuti pola tersebut saat membuat modul baru.
 
 ### Alur auth
 
