@@ -5,6 +5,7 @@ import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
+import ExportButton from "./components/ExportButton";
 import TransactionFilters from "./components/TransactionFilters";
 import TransactionTable from "./components/TransactionTable";
 import { parseTransactionFilters } from "./filters";
@@ -115,6 +116,7 @@ export function TransactionList() {
     <div className="flex flex-col gap-6 p-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold">Transaksi</h1>
+        <ExportButton filters={filters} disabled={!parsed.success} />
       </div>
       <TransactionFilters
         values={values}
