@@ -12,7 +12,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `../sbn-supabase`: migration, storage bucket, dan generate types Supabase. Skema database diubah di sana, bukan di sini.
 - `../../planning/init.md`: spesifikasi utama (routes, data model, RLS, design pattern). `../../planning/001-fondasi.md`: backlog fondasi (task `FND001`–`FND017`). `../../planning/002-campaign.md`: backlog campaign (task `CMP001`–`CMP012`). Baca dokumen ini sebelum mengerjakan fitur.
 
-Fondasi sudah selesai: Supabase client, `proxy.ts`, login admin, proteksi halaman, dan sidebar. Modul campaign (`/campaigns`, `/campaigns/new`, `/campaigns/[uuid]`) ada di `containers/campaigns/`. Halaman modul lain (transaksi, donatur, blog, pengaturan) belum ada; menunya sudah tersedia di sidebar (`components/layout/navigation.ts`).
+Fondasi sudah selesai: Supabase client, `proxy.ts`, login admin, proteksi halaman, dan sidebar. Modul yang sudah ada:
+
+- campaign (`/campaigns`, `/campaigns/new`, `/campaigns/[uuid]`) di `containers/campaigns/`;
+- transaksi (`/transactions`, `/transactions/[uuid]`, `/transactions/export`) di `containers/transactions/`;
+- dashboard (`/`) di `containers/dashboard/`.
+
+Halaman modul lain (donatur, blog, pengaturan) belum ada; menunya sudah tersedia di sidebar (`components/layout/navigation.ts`).
 
 Route Office: `/auth/login`, `/` (dashboard), `/campaigns`, `/transactions`, `/donors`, `/blog/posts`, `/blog/categories`, `/settings`. Semua halaman admin dibuat di route group `app/(dashboard)/`, supaya ikut layout sidebar dan `AdminGate`.
 
@@ -39,6 +45,7 @@ Belum ada test runner. Setelah memindah atau menghapus route, `npx tsc --noEmit`
 - Tailwind v4 dimuat lewat loader `@tailwindcss/turbopack` di `next.config.ts`. Tidak ada `tailwind.config` maupun PostCSS config; token tema ada di `app/globals.css`.
 - Komponen shadcn memakai style `base-nova`, yang dibangun di atas `@base-ui/react` (bukan Radix). Komposisi elemen memakai prop `render` (contoh: `<SidebarMenuButton render={<Link href="/" />}>`), bukan `asChild`. `cn` berasal dari package npm `cn` (pengganti clsx + tailwind-merge). Komponen `components/ui/*` mengimpornya langsung dari `"cn"`, sedangkan `lib/utils.ts` hanya me-re-export-nya.
 - Dengan `cacheComponents`, kode yang tidak deterministik saat prerender (`Math.random()`, `Date.now()`) membuat build gagal. Contohnya `SidebarMenuSkeleton` bawaan shadcn, jadi fallback memakai `Skeleton`. `usePathname()` di luar `<Suspense>` juga akan menunda render begitu ada route dengan param dinamis (seperti `/campaigns/[uuid]`). Karena itu `AppSidebar` dibungkus `<Suspense>` di `app/(dashboard)/layout.tsx`.
+- `loading.tsx` di `app/(dashboard)/` akan membungkus semua halaman di route group itu, bukan hanya dashboard. Karena itu `app/(dashboard)/page.tsx` memakai `<Suspense fallback={<DashboardSkeleton />}>`.
 
 ## Arsitektur
 
@@ -62,11 +69,23 @@ Belum ada test runner. Setelah memindah atau menghapus route, `npx tsc --noEmit`
   - `getCurrentUser()`, dibungkus `React.cache()` sehingga cukup satu query per request walau dipanggil gate, sidebar, dan halaman;
   - `isActiveAdmin()`;
   - `requireAdmin()` (mengembalikan admin yang login, termasuk `id` untuk kolom `users_id`).
-- Helper bersama di `lib/`: `slug.ts` (`slugify()`), `html.ts` (`isEmptyHtml()`), `sanitize.ts` (`sanitizeRichText()`, server-only, allowlist sama dengan output editor), `date.ts` (konversi tanggal Asia/Jakarta untuk `<input type="date">` dan `timestamptz`), `campaign.ts` (label/opsi status, `getProgressPercent()`).
+- Helper bersama di `lib/`:
+  - `slug.ts` (`slugify()`), `html.ts` (`isEmptyHtml()`), `sanitize.ts` (`sanitizeRichText()`, server-only, allowlist sama dengan output editor);
+  - `utils.ts` (`formatRupiah()`, `escapeLike()` untuk pencarian `ilike`);
+  - `date.ts` (zona Asia/Jakarta: nilai `<input type="date">`, awal/akhir hari untuk filter, `formatDate()`, `formatDateTime()`, dan `toJakartaDateTime()` untuk sel tanggal Excel);
+  - `campaign.ts` (label/opsi status, `getProgressPercent()`);
+  - `transaction.ts` (label, opsi, dan varian badge status pembayaran), `payment-method.ts` (`getPaymentMethodLabel()`);
+  - `midtrans.ts` (server-only): `getTransactionStatus()`, `mapPaymentStatus()`, `getPaidAt()`. Salinan sebagian `sbn-donatur/lib/midtrans.ts`; bila logika status berubah, ubah keduanya.
+- Badge status yang dipakai lebih dari satu container ada di `components/campaigns/` dan `components/transactions/`.
 - `components/editor/RichTextEditor.tsx`: editor Tiptap (HTML) yang dipakai bersama campaign, blog, dan pengaturan lewat `Controller` react-hook-form. `hooks/use-debounced-value.ts` untuk pencarian di halaman daftar.
 - Fungsi baca data di server (Server Component) ditaruh di `containers/<modul>/<halaman>/queries.ts` dan dibungkus `React.cache()`, contoh `getCampaignByUuid()`.
 
 `containers/auth/login/` adalah contoh lengkap pola ini (schema, action, hook, form). `containers/campaigns/form/` (form tambah/ubah + upload file) dan `containers/campaigns/list/` (daftar dengan pagination, pencarian, dan filter) adalah contoh untuk modul CRUD. Ikuti pola tersebut saat membuat modul baru.
+
+`containers/transactions/` menambah dua pola:
+
+- `list/filters.ts` (tanpa `server-only`): `applyTransactionFilters()` dipakai daftar di client dan export di server, agar hasilnya selalu sama.
+- Route Handler: `app/(dashboard)/transactions/export/route.ts` hanya memanggil `exportTransactions()` di `containers/transactions/export/`, yang memanggil `requireAdmin()` sendiri.
 
 ### Alur auth
 
@@ -103,13 +122,15 @@ export type ActionResult<T = undefined> =
 
 - Daftar dengan pagination/filter/pencarian memakai Tanstack Query (`useQuery` + `placeholderData: keepPreviousData`) dengan `lib/supabase/client.ts` (dilindungi RLS), `.range()`, dan `{ count: "exact" }`. Format query key: `["<modul>", { ...params }]`, contoh `["transactions", { page, status, campaignsId }]`.
 - Data yang membutuhkan secret (service role, Midtrans) dibaca lewat Server Component atau Route Handler, tidak pernah dari client.
-- Dashboard memakai `@tanstack/charts`. Export Excel transaksi dijalankan di server dan mengikuti filter yang sedang aktif.
+- Admin membaca `transactions` dengan server/browser client biasa, karena RLS (`is_admin()`) sudah mengizinkan admin membaca semua baris.
+- Dashboard memakai `@tanstack/charts` (komponen client yang menerima data dari server) dan view `dashboard_summary` (`security_invoker`).
+- Export Excel transaksi (`exceljs`) dijalankan di server dan mengikuti filter yang sedang aktif. PostgREST membatasi satu respons 1.000 baris, jadi data diambil per 1.000 baris dengan `.range()`.
 
 ### Keamanan
 
 - RLS aktif di semua tabel. Pengecekan admin dilakukan oleh `is_admin()` di database (membaca `profiles.role`) dan oleh `requireAdmin()` di aplikasi.
 - Proteksi di layout **tidak** melindungi Server Action, jadi setiap Server Action / Route Handler di office harus memanggil `requireAdmin()`.
-- `lib/auth.ts` dan `lib/supabase/admin.ts` diawali `import "server-only";`. Pakai `admin.ts` (`SUPABASE_SERVICE_ROLE_KEY`) hanya untuk kebutuhan yang memang memerlukannya: insert/update `transactions` dan Midtrans, ban user, serta export.
+- `lib/auth.ts` dan `lib/supabase/admin.ts` diawali `import "server-only";`. Pakai `admin.ts` (`SUPABASE_SERVICE_ROLE_KEY`) hanya untuk kebutuhan yang memang memerlukannya: update `transactions` (cek ulang status ke Midtrans) dan ban user. Export membaca dengan server client.
 - Menonaktifkan donatur dilakukan dengan dua langkah: set `profiles.is_active = false` lalu ban user lewat Supabase Auth Admin API.
 
 ### Konvensi lain
