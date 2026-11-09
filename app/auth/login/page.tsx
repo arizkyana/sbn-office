@@ -1,5 +1,13 @@
-import { Login } from "@/containers/auth/login";
+import { Suspense } from "react";
+import { Login, RedirectIfAdmin } from "@/containers/auth/login";
 
 export default function LoginPage() {
-  return <Login />;
+  return (
+    <>
+      <Suspense fallback={null}>
+        <RedirectIfAdmin />
+      </Suspense>
+      <Login />
+    </>
+  );
 }
