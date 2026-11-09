@@ -10,13 +10,18 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function DashboardLayout({ children }: LayoutProps<"/">) {
   return (
     <SidebarProvider>
-      <AppSidebar
-        footer={
-          <Suspense fallback={<Skeleton className="h-16 w-full" />}>
-            <NavUser />
-          </Suspense>
-        }
-      />
+      {/* usePathname() di AppSidebar tertunda pada route dengan param dinamis (/campaigns/[uuid]). */}
+      <Suspense
+        fallback={<div className="hidden w-(--sidebar-width) md:block" />}
+      >
+        <AppSidebar
+          footer={
+            <Suspense fallback={<Skeleton className="h-16 w-full" />}>
+              <NavUser />
+            </Suspense>
+          }
+        />
+      </Suspense>
       <SidebarInset>
         <header className="flex h-12 shrink-0 items-center border-b px-4">
           <SidebarTrigger />
