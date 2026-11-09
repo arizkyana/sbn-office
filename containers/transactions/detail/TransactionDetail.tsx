@@ -9,6 +9,7 @@ import { formatDateTime } from "@/lib/date";
 import { getPaymentMethodLabel } from "@/lib/payment-method";
 import { formatRupiah } from "@/lib/utils";
 import DetailList from "./components/DetailList";
+import RecheckStatusButton from "./components/RecheckStatusButton";
 import { getTransactionByUuid } from "./queries";
 
 export async function TransactionDetail({ uuid }: { uuid: string }) {
@@ -27,14 +28,20 @@ export async function TransactionDetail({ uuid }: { uuid: string }) {
             {transaction.order_id}
           </p>
         </div>
-        <Button
-          variant="outline"
-          nativeButton={false}
-          render={<Link href="/transactions" />}
-        >
-          <ArrowLeftIcon data-icon="inline-start" />
-          Kembali
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant="outline"
+            nativeButton={false}
+            render={<Link href="/transactions" />}
+          >
+            <ArrowLeftIcon data-icon="inline-start" />
+            Kembali
+          </Button>
+          {/* Transaksi final tidak berubah lagi (UC03). */}
+          {transaction.payment_status === "PENDING" && (
+            <RecheckStatusButton uuid={transaction.uuid} />
+          )}
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
