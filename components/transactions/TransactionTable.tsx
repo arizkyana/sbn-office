@@ -14,18 +14,36 @@ import {
 } from "@/components/ui/table";
 import { formatDateTime } from "@/lib/date";
 import { getPaymentMethodLabel } from "@/lib/payment-method";
+import type { Tables } from "@/lib/supabase/database.types";
 import { cn, formatRupiah } from "@/lib/utils";
-import type { TransactionListItem } from "../hooks/useTransactions";
+
+/** Kolom yang dibutuhkan tabel; cocok dengan select daftar transaksi dan riwayat donatur. */
+export type TransactionTableRow = Pick<
+  Tables<"transactions">,
+  | "uuid"
+  | "order_id"
+  | "created_at"
+  | "donor_name"
+  | "donor_email"
+  | "is_anonymous"
+  | "amount"
+  | "payment_method"
+  | "payment_status"
+> & { campaigns: { title: string } };
 
 type TransactionTableProps = {
-  rows: TransactionListItem[];
+  rows: TransactionTableRow[];
   /** Menandai data halaman sebelumnya yang masih tampil saat halaman baru dimuat. */
   isStale?: boolean;
+  /** `false` di riwayat satu donatur (AKN010), karena kolom Donatur selalu sama. */
+  showDonor?: boolean;
 };
 
-export default function TransactionTable({
+// Dipakai daftar transaksi (TRX003) dan riwayat donasi di detail donatur (AKN010).
+export function TransactionTable({
   rows,
   isStale,
+  showDonor = true,
 }: TransactionTableProps) {
   const router = useRouter();
 
@@ -42,7 +60,7 @@ export default function TransactionTable({
           <TableRow>
             <TableHead className="pl-4">Tanggal</TableHead>
             <TableHead>Order ID</TableHead>
-            <TableHead>Donatur</TableHead>
+            {showDonor && <TableHead>Donatur</TableHead>}
             <TableHead>Campaign</TableHead>
             <TableHead className="text-right">Nominal</TableHead>
             <TableHead>Metode</TableHead>
@@ -72,19 +90,21 @@ export default function TransactionTable({
                     {transaction.order_id}
                   </Link>
                 </TableCell>
-                <TableCell>
-                  <div className="flex flex-col gap-0.5">
-                    <span className="flex items-center gap-1.5 font-medium">
-                      {transaction.donor_name}
-                      {transaction.is_anonymous && (
-                        <Badge variant="outline">Anonim</Badge>
-                      )}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      {transaction.donor_email}
-                    </span>
-                  </div>
-                </TableCell>
+                {showDonor && (
+                  <TableCell>
+                    <div className="flex flex-col gap-0.5">
+                      <span className="flex items-center gap-1.5 font-medium">
+                        {transaction.donor_name}
+                        {transaction.is_anonymous && (
+                          <Badge variant="outline">Anonim</Badge>
+                        )}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {transaction.donor_email}
+                      </span>
+                    </div>
+                  </TableCell>
+                )}
                 <TableCell>
                   <span className="line-clamp-2 max-w-56 whitespace-normal">
                     {transaction.campaigns.title}

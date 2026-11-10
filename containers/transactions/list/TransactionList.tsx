@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import { TransactionTable } from "@/components/transactions/TransactionTable";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import ExportButton from "./components/ExportButton";
 import TransactionFilters from "./components/TransactionFilters";
-import TransactionTable from "./components/TransactionTable";
 import { parseTransactionFilters } from "./filters";
 import useCampaignOptions from "./hooks/useCampaignOptions";
 import useTransactions from "./hooks/useTransactions";
