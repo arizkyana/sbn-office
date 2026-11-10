@@ -1,7 +1,7 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import type { CampaignStatus } from "@/lib/campaign";
 import { createClient } from "@/lib/supabase/client";
-import { escapeLike } from "@/lib/utils";
+import { escapeLike } from "@/lib/search";
 
 export const PAGE_SIZE = 10;
 

@@ -2,13 +2,13 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeftIcon, ExternalLinkIcon } from "lucide-react";
 import { z } from "zod";
+import { DetailList } from "@/components/detail/DetailList";
 import { TransactionStatusBadge } from "@/components/transactions/TransactionStatusBadge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDateTime } from "@/lib/date";
 import { getPaymentMethodLabel } from "@/lib/payment-method";
 import { formatRupiah } from "@/lib/utils";
-import DetailList from "./components/DetailList";
 import RecheckStatusButton from "./components/RecheckStatusButton";
 import { getTransactionByUuid } from "./queries";
 

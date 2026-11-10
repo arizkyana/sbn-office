@@ -1,5 +1,5 @@
 import { endOfDayJakarta, startOfDayJakarta } from "@/lib/date";
-import { escapeLike } from "@/lib/utils";
+import { buildIlikeOrFilter } from "@/lib/search";
 import {
   transactionFilterSchema,
   type TransactionFilterValues,
@@ -48,16 +48,11 @@ export function applyTransactionFilters<Query extends FilterableQuery<Query>>(
     filtered = filtered.lte("created_at", endOfDayJakarta(filters.to));
   }
 
-  // , ( ) adalah pemisah sintaks filter PostgREST di dalam .or().
-  const search = filters.search?.replace(/[,()]/g, "").trim();
-  if (search) {
-    const pattern = `%${escapeLike(search)}%`;
-    filtered = filtered.or(
-      ["order_id", "donor_name", "donor_email"]
-        .map((column) => `${column}.ilike.${pattern}`)
-        .join(","),
-    );
-  }
+  const search = buildIlikeOrFilter(
+    ["order_id", "donor_name", "donor_email"],
+    filters.search,
+  );
+  if (search) filtered = filtered.or(search);
   return filtered;
 }
 
