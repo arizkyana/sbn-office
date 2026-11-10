@@ -2,7 +2,8 @@ import { Badge } from "@/components/ui/badge";
 import { campaignStatusLabel, type CampaignStatus } from "@/lib/campaign";
 
 const badgeVariant = {
-  DRAFT: "secondary",
+  // Draft emas: belum tayang di website donatur (backlog 009).
+  DRAFT: "warning",
   PUBLISH: "default",
   ARCHIVED: "outline",
 } as const satisfies Record<CampaignStatus, string>;

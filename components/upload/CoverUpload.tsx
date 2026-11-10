@@ -105,8 +105,10 @@ export function CoverUpload({
             className="object-cover"
           />
         ) : (
-          <div className="flex h-full flex-col items-center justify-center gap-1 text-sm text-muted-foreground">
-            <ImageIcon className="size-6" />
+          <div className="flex h-full flex-col items-center justify-center gap-2 text-sm text-muted-foreground">
+            <span className="flex size-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <ImageIcon className="size-6" />
+            </span>
             Belum ada cover
           </div>
         )}

@@ -1,7 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  CircleAlertIcon,
+  ReceiptTextIcon,
+} from "lucide-react";
+import { EmptyState } from "@/components/feedback/EmptyState";
 import { TransactionTable } from "@/components/transactions/TransactionTable";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -24,28 +30,30 @@ export default function DonorTransactions({ donorId }: { donorId: string }) {
 
   if (isError) {
     return (
-      <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed p-8 text-center">
-        <p className="text-sm text-muted-foreground">
-          Riwayat donasi gagal dimuat.
-        </p>
-        <Button
-          variant="outline"
-          disabled={isRefetching}
-          onClick={() => refetch()}
-        >
-          Coba lagi
-        </Button>
-      </div>
+      <EmptyState
+        icon={CircleAlertIcon}
+        title="Riwayat donasi gagal dimuat"
+        className="py-6"
+        action={
+          <Button
+            variant="outline"
+            disabled={isRefetching}
+            onClick={() => refetch()}
+          >
+            Coba lagi
+          </Button>
+        }
+      />
     );
   }
 
   if (data.rows.length === 0) {
     return (
-      <div className="rounded-lg border border-dashed p-8 text-center">
-        <p className="text-sm text-muted-foreground">
-          Belum ada donasi dari akun ini
-        </p>
-      </div>
+      <EmptyState
+        icon={ReceiptTextIcon}
+        title="Belum ada donasi dari akun ini"
+        className="py-6"
+      />
     );
   }
 
@@ -55,6 +63,8 @@ export default function DonorTransactions({ donorId }: { donorId: string }) {
         rows={data.rows}
         isStale={isPlaceholderData}
         showDonor={false}
+        // Sudah di dalam Card "Riwayat Donasi": cukup garis, tanpa shadow kedua.
+        className="border shadow-none"
       />
       <div className="flex items-center justify-between gap-4">
         <p className="text-sm text-muted-foreground">

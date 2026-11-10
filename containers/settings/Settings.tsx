@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/layout/PageHeader";
 import ContentForm from "./components/ContentForm";
 import WhatsappForm from "./components/WhatsappForm";
 import { getSettings } from "./queries";
@@ -8,7 +9,10 @@ export async function Settings() {
 
   return (
     <div className="flex flex-col gap-6 p-6">
-      <h1 className="text-2xl font-semibold">Pengaturan</h1>
+      <PageHeader
+        title="Pengaturan"
+        description="Nomor WhatsApp, Syarat & Ketentuan, dan Profil Lembaga yang tampil di website donatur."
+      />
       <div className="flex max-w-4xl flex-col gap-6">
         <WhatsappForm defaultValue={settings.whatsapp_number} />
         <ContentForm

@@ -48,7 +48,7 @@ function ToolbarButton({
       aria-pressed={active}
       disabled={disabled}
       onClick={onClick}
-      className={cn(active && "bg-muted text-foreground")}
+      className={cn(active && "bg-primary/10 text-primary hover:text-primary")}
     >
       <Icon className={cn(Icon === Loader2Icon && "animate-spin")} />
     </Button>
@@ -100,7 +100,7 @@ export function EditorToolbar({
 
   return (
     <>
-      <div className="flex flex-wrap items-center gap-0.5 border-b p-1">
+      <div className="flex flex-wrap items-center gap-0.5 rounded-t-lg border-b bg-muted/50 p-1">
         <ToolbarButton
           label="Judul 1"
           icon={Heading1Icon}

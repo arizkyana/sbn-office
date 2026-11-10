@@ -2,7 +2,17 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ChevronLeftIcon, ChevronRightIcon, PlusIcon } from "lucide-react";
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  CircleAlertIcon,
+  NewspaperIcon,
+  PlusIcon,
+  SearchXIcon,
+} from "lucide-react";
+import { TableCard } from "@/components/data/TableCard";
+import { EmptyState } from "@/components/feedback/EmptyState";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import useCategoryOptions from "@/containers/blog/categories/hooks/useCategoryOptions";
@@ -53,29 +63,51 @@ export function PostList() {
 
     if (isError) {
       return (
-        <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed p-10 text-center">
-          <p className="text-sm text-muted-foreground">
-            Daftar post gagal dimuat.
-          </p>
-          <Button
-            variant="outline"
-            disabled={isRefetching}
-            onClick={() => refetch()}
-          >
-            Coba lagi
-          </Button>
-        </div>
+        <TableCard>
+          <EmptyState
+            icon={CircleAlertIcon}
+            title="Daftar post gagal dimuat"
+            description="Periksa koneksi internet, lalu coba lagi."
+            action={
+              <Button
+                variant="outline"
+                disabled={isRefetching}
+                onClick={() => refetch()}
+              >
+                Coba lagi
+              </Button>
+            }
+          />
+        </TableCard>
       );
     }
 
     if (data.rows.length === 0) {
       return (
-        <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed p-10 text-center">
-          <p className="text-sm text-muted-foreground">
-            {isFiltered ? "Post tidak ditemukan" : "Belum ada post"}
-          </p>
-          {!isFiltered && <AddPostButton />}
-        </div>
+        <TableCard>
+          {isFiltered ? (
+            <EmptyState
+              icon={SearchXIcon}
+              title="Post tidak ditemukan"
+              description="Coba ubah kata kunci, tipe, status, atau kategori."
+              action={
+                <Button
+                  variant="outline"
+                  onClick={() => changeFilters(emptyPostFilterValues)}
+                >
+                  Reset filter
+                </Button>
+              }
+            />
+          ) : (
+            <EmptyState
+              icon={NewspaperIcon}
+              title="Belum ada post"
+              description="Artikel dan video yang dibuat akan tampil di sini."
+              action={<AddPostButton />}
+            />
+          )}
+        </TableCard>
       );
     }
 
@@ -113,10 +145,11 @@ export function PostList() {
 
   return (
     <div className="flex flex-col gap-6 p-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-2xl font-semibold">Artikel & Video</h1>
-        <AddPostButton />
-      </div>
+      <PageHeader
+        title="Artikel & Video"
+        description="Kelola kabar program, laporan penyaluran, dan video kegiatan."
+        actions={<AddPostButton />}
+      />
       <PostFilters
         values={values}
         categoryOptions={categoryOptions}

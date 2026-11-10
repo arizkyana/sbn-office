@@ -2,7 +2,17 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ChevronLeftIcon, ChevronRightIcon, PlusIcon } from "lucide-react";
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  CircleAlertIcon,
+  HeartHandshakeIcon,
+  PlusIcon,
+  SearchXIcon,
+} from "lucide-react";
+import { TableCard } from "@/components/data/TableCard";
+import { EmptyState } from "@/components/feedback/EmptyState";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
@@ -29,6 +39,12 @@ export function CampaignList() {
     useCampaigns({ page, search: debouncedSearch, status });
   const isFiltered = debouncedSearch !== "" || status !== "ALL";
 
+  const resetFilters = () => {
+    setSearch("");
+    setStatus("ALL");
+    setPage(1);
+  };
+
   const renderContent = () => {
     if (isPending) {
       return (
@@ -42,29 +58,48 @@ export function CampaignList() {
 
     if (isError) {
       return (
-        <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed p-10 text-center">
-          <p className="text-sm text-muted-foreground">
-            Daftar campaign gagal dimuat.
-          </p>
-          <Button
-            variant="outline"
-            disabled={isRefetching}
-            onClick={() => refetch()}
-          >
-            Coba lagi
-          </Button>
-        </div>
+        <TableCard>
+          <EmptyState
+            icon={CircleAlertIcon}
+            title="Daftar campaign gagal dimuat"
+            description="Periksa koneksi internet, lalu coba lagi."
+            action={
+              <Button
+                variant="outline"
+                disabled={isRefetching}
+                onClick={() => refetch()}
+              >
+                Coba lagi
+              </Button>
+            }
+          />
+        </TableCard>
       );
     }
 
     if (data.rows.length === 0) {
       return (
-        <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed p-10 text-center">
-          <p className="text-sm text-muted-foreground">
-            {isFiltered ? "Campaign tidak ditemukan" : "Belum ada campaign"}
-          </p>
-          {!isFiltered && <AddCampaignButton />}
-        </div>
+        <TableCard>
+          {isFiltered ? (
+            <EmptyState
+              icon={SearchXIcon}
+              title="Campaign tidak ditemukan"
+              description="Coba kata kunci atau status lain."
+              action={
+                <Button variant="outline" onClick={resetFilters}>
+                  Reset filter
+                </Button>
+              }
+            />
+          ) : (
+            <EmptyState
+              icon={HeartHandshakeIcon}
+              title="Belum ada campaign"
+              description="Campaign yang dibuat akan tampil di sini."
+              action={<AddCampaignButton />}
+            />
+          )}
+        </TableCard>
       );
     }
 
@@ -102,10 +137,11 @@ export function CampaignList() {
 
   return (
     <div className="flex flex-col gap-6 p-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-2xl font-semibold">Campaign</h1>
-        <AddCampaignButton />
-      </div>
+      <PageHeader
+        title="Campaign"
+        description="Kelola program donasi yang tampil di website donatur."
+        actions={<AddCampaignButton />}
+      />
       <CampaignFilters
         search={search}
         status={status}

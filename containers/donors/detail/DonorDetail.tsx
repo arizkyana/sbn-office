@@ -4,6 +4,7 @@ import { ArrowLeftIcon } from "lucide-react";
 import { z } from "zod";
 import { DetailList } from "@/components/detail/DetailList";
 import { DonorStatusBadge } from "@/components/donors/DonorStatusBadge";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDateTime } from "@/lib/date";
@@ -24,30 +25,28 @@ export async function DonorDetail({ id }: { id: string }) {
 
   return (
     <div className="flex flex-col gap-6 p-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-semibold">Detail Donatur</h1>
-          <p className="text-sm text-muted-foreground">
-            {donor.full_name || donor.email}
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button
-            variant="outline"
-            nativeButton={false}
-            render={<Link href="/donors" />}
-          >
-            <ArrowLeftIcon data-icon="inline-start" />
-            Kembali
-          </Button>
-          <DonorActiveAction id={donor.id} isActive={donor.is_active} />
-        </div>
-      </div>
+      <PageHeader
+        title="Detail Donatur"
+        description={donor.full_name || donor.email}
+        actions={
+          <>
+            <Button
+              variant="outline"
+              nativeButton={false}
+              render={<Link href="/donors" />}
+            >
+              <ArrowLeftIcon data-icon="inline-start" />
+              Kembali
+            </Button>
+            <DonorActiveAction id={donor.id} isActive={donor.is_active} />
+          </>
+        }
+      />
 
       <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
         <Card>
           <CardHeader>
-            <CardTitle>Profil</CardTitle>
+            <CardTitle className="text-lg font-bold">Profil</CardTitle>
           </CardHeader>
           <CardContent>
             <DetailList
@@ -67,7 +66,9 @@ export async function DonorDetail({ id }: { id: string }) {
 
         <Card>
           <CardHeader>
-            <CardTitle>Ringkasan Donasi</CardTitle>
+            <CardTitle className="text-lg font-bold">
+              Ringkasan Donasi
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <DetailList
@@ -84,7 +85,7 @@ export async function DonorDetail({ id }: { id: string }) {
 
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle>Riwayat Donasi</CardTitle>
+            <CardTitle className="text-lg font-bold">Riwayat Donasi</CardTitle>
             <p className="text-sm text-muted-foreground">
               Hanya donasi yang dilakukan saat donatur masuk ke akunnya.
             </p>

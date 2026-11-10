@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ImageIcon, PencilIcon } from "lucide-react";
 import { CampaignStatusBadge } from "@/components/campaigns/CampaignStatusBadge";
+import { TableCard } from "@/components/data/TableCard";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -14,7 +15,7 @@ import {
 } from "@/components/ui/table";
 import { getProgressPercent } from "@/lib/campaign";
 import { formatDate } from "@/lib/date";
-import { cn, formatRupiah } from "@/lib/utils";
+import { formatRupiah } from "@/lib/utils";
 import type { CampaignListItem } from "../hooks/useCampaigns";
 
 type CampaignTableProps = {
@@ -25,12 +26,7 @@ type CampaignTableProps = {
 
 export default function CampaignTable({ rows, isStale }: CampaignTableProps) {
   return (
-    <div
-      className={cn(
-        "rounded-lg border transition-opacity",
-        isStale && "opacity-60",
-      )}
-    >
+    <TableCard isStale={isStale}>
       {/* Tabel bisa di-scroll horizontal di layar kecil (pembungkus bawaan Table). */}
       <Table className="min-w-190">
         <TableHeader>
@@ -88,7 +84,7 @@ export default function CampaignTable({ rows, isStale }: CampaignTableProps) {
                       )}
                     </span>
                     {percent === null ? (
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-sm text-muted-foreground">
                         Tanpa target
                       </span>
                     ) : (
@@ -96,9 +92,10 @@ export default function CampaignTable({ rows, isStale }: CampaignTableProps) {
                         <Progress
                           value={percent}
                           aria-label={`Progres ${campaign.title}`}
-                          className="flex-1"
+                          // Bar emas, sama dengan CampaignProgress di sbn-donatur.
+                          className="flex-1 **:data-[slot=progress-indicator]:bg-brand-gold"
                         />
-                        <span className="text-xs text-muted-foreground tabular-nums">
+                        <span className="text-sm font-semibold tabular-nums">
                           {percent}%
                         </span>
                       </div>
@@ -128,6 +125,6 @@ export default function CampaignTable({ rows, isStale }: CampaignTableProps) {
           })}
         </TableBody>
       </Table>
-    </div>
+    </TableCard>
   );
 }

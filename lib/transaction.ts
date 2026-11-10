@@ -11,10 +11,10 @@ export const paymentStatusLabel: Record<PaymentStatus, string> = {
   FAILED: "Gagal",
 };
 
-// Badge tidak punya varian sukses/peringatan; "default" memakai warna primary (hijau).
+// Sama dengan riwayat donasi di sbn-donatur: Menunggu emas (warning) agar menonjol.
 export const paymentStatusBadgeVariant = {
   SUCCESS: "default",
-  PENDING: "secondary",
+  PENDING: "warning",
   EXPIRED: "outline",
   FAILED: "destructive",
 } as const satisfies Record<PaymentStatus, string>;

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeftIcon, ExternalLinkIcon } from "lucide-react";
 import { z } from "zod";
 import { DetailList } from "@/components/detail/DetailList";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { TransactionStatusBadge } from "@/components/transactions/TransactionStatusBadge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,33 +22,31 @@ export async function TransactionDetail({ uuid }: { uuid: string }) {
 
   return (
     <div className="flex flex-col gap-6 p-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-semibold">Detail Transaksi</h1>
-          <p className="font-mono text-sm text-muted-foreground">
-            {transaction.order_id}
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button
-            variant="outline"
-            nativeButton={false}
-            render={<Link href="/transactions" />}
-          >
-            <ArrowLeftIcon data-icon="inline-start" />
-            Kembali
-          </Button>
-          {/* Transaksi final tidak berubah lagi (UC03). */}
-          {transaction.payment_status === "PENDING" && (
-            <RecheckStatusButton uuid={transaction.uuid} />
-          )}
-        </div>
-      </div>
+      <PageHeader
+        title="Detail Transaksi"
+        description={<span className="font-mono">{transaction.order_id}</span>}
+        actions={
+          <>
+            <Button
+              variant="outline"
+              nativeButton={false}
+              render={<Link href="/transactions" />}
+            >
+              <ArrowLeftIcon data-icon="inline-start" />
+              Kembali
+            </Button>
+            {/* Transaksi final tidak berubah lagi (UC03). */}
+            {transaction.payment_status === "PENDING" && (
+              <RecheckStatusButton uuid={transaction.uuid} />
+            )}
+          </>
+        }
+      />
 
       <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
         <Card>
           <CardHeader>
-            <CardTitle>Donasi</CardTitle>
+            <CardTitle className="text-lg font-bold">Donasi</CardTitle>
           </CardHeader>
           <CardContent>
             <DetailList
@@ -94,7 +93,7 @@ export async function TransactionDetail({ uuid }: { uuid: string }) {
 
         <Card>
           <CardHeader>
-            <CardTitle>Donatur</CardTitle>
+            <CardTitle className="text-lg font-bold">Donatur</CardTitle>
           </CardHeader>
           <CardContent>
             <DetailList
@@ -126,7 +125,7 @@ export async function TransactionDetail({ uuid }: { uuid: string }) {
 
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle>Midtrans</CardTitle>
+            <CardTitle className="text-lg font-bold">Midtrans</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
             <DetailList

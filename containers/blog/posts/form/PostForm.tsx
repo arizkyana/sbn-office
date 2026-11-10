@@ -8,7 +8,8 @@ import { uploadEditorImage } from "@/components/editor/actions";
 import { RichTextEditor } from "@/components/editor/RichTextEditor";
 import { CoverUpload } from "@/components/upload/CoverUpload";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Field,
   FieldDescription,
@@ -67,12 +68,10 @@ export function PostForm({ uuid, defaultValues }: PostFormProps) {
   return (
     <div className="flex flex-col gap-6 p-6">
       {/* Di luar <form> agar tombol Hapus tidak ikut men-submit form. */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-2xl font-semibold">
-          {isEdit ? "Ubah Post" : "Tambah Post"}
-        </h1>
-        {uuid && <DeletePostButton uuid={uuid} />}
-      </div>
+      <PageHeader
+        title={isEdit ? "Ubah Post" : "Tambah Post"}
+        actions={uuid && <DeletePostButton uuid={uuid} />}
+      />
 
       <form
         onSubmit={handleSubmit(onSubmit)}
@@ -87,6 +86,9 @@ export function PostForm({ uuid, defaultValues }: PostFormProps) {
 
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
           <Card>
+            <CardHeader>
+              <CardTitle>Konten</CardTitle>
+            </CardHeader>
             <CardContent>
               <FieldGroup>
                 <Controller
@@ -249,6 +251,9 @@ export function PostForm({ uuid, defaultValues }: PostFormProps) {
           </Card>
 
           <Card>
+            <CardHeader>
+              <CardTitle>Publikasi</CardTitle>
+            </CardHeader>
             <CardContent>
               <FieldGroup>
                 <Controller
