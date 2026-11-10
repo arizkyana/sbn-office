@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDateTime } from "@/lib/date";
 import { formatRupiah } from "@/lib/utils";
+import DonorActiveAction from "./components/DonorActiveAction";
 import DonorTransactions from "./components/DonorTransactions";
 import { getDonorById, getDonorSuccessSummary } from "./queries";
 
@@ -30,14 +31,17 @@ export async function DonorDetail({ id }: { id: string }) {
             {donor.full_name || donor.email}
           </p>
         </div>
-        <Button
-          variant="outline"
-          nativeButton={false}
-          render={<Link href="/donors" />}
-        >
-          <ArrowLeftIcon data-icon="inline-start" />
-          Kembali
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant="outline"
+            nativeButton={false}
+            render={<Link href="/donors" />}
+          >
+            <ArrowLeftIcon data-icon="inline-start" />
+            Kembali
+          </Button>
+          <DonorActiveAction id={donor.id} isActive={donor.is_active} />
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
