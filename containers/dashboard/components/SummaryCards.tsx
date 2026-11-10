@@ -1,5 +1,6 @@
 import { HandHeartIcon, UsersIcon, WalletIcon } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { MIDTRANS_DASHBOARD_URL } from "@/lib/midtrans";
 import { cn, formatRupiah } from "@/lib/utils";
 
 type SummaryCardsProps = {
@@ -17,9 +18,25 @@ export default function SummaryCards({
 }: SummaryCardsProps) {
   const items = [
     {
-      label: "Total Terkumpul",
+      label: "Total Terkumpul (gross)",
       value: formatRupiah(totalCollected),
       icon: WalletIcon,
+      // Nominal donasi sebelum dipotong biaya Midtrans; dana yang diterima
+      // yayasan lebih kecil, jadi admin perlu mencocokkan dengan Midtrans.
+      note: (
+        <>
+          Belum dipotong biaya Midtrans. Selalu cocokkan dengan{" "}
+          <a
+            href={MIDTRANS_DASHBOARD_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold underline underline-offset-2"
+          >
+            transaksi di Midtrans
+          </a>
+          .
+        </>
+      ),
       // Angka utama: kartu bergradien seperti banner beranda donatur.
       cardClassName:
         "bg-linear-to-br from-primary to-primary-strong text-primary-foreground",
@@ -46,7 +63,12 @@ export default function SummaryCards({
       {items.map((item) => (
         <Card
           key={item.label}
-          className={cn("flex-row items-center gap-4 px-4", item.cardClassName)}
+          className={cn(
+            "flex-row gap-4 px-4",
+            // Kartu dengan catatan lebih tinggi: ikon sejajar dengan label.
+            "note" in item ? "items-start" : "items-center",
+            item.cardClassName,
+          )}
         >
           <span
             aria-hidden
@@ -69,6 +91,16 @@ export default function SummaryCards({
             <p className="truncate text-2xl font-bold tabular-nums">
               {item.value}
             </p>
+            {"note" in item && (
+              <p
+                className={cn(
+                  "mt-1 text-sm text-muted-foreground",
+                  item.labelClassName,
+                )}
+              >
+                {item.note}
+              </p>
+            )}
           </div>
         </Card>
       ))}

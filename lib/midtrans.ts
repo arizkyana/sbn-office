@@ -9,6 +9,11 @@ const CORE_BASE_URL = IS_PRODUCTION
   ? "https://api.midtrans.com"
   : "https://api.sandbox.midtrans.com";
 
+/** Dashboard Midtrans sesuai environment, untuk mencocokkan transaksi dan biaya. */
+export const MIDTRANS_DASHBOARD_URL = IS_PRODUCTION
+  ? "https://dashboard.midtrans.com"
+  : "https://dashboard.sandbox.midtrans.com";
+
 function getServerKey() {
   const serverKey = process.env.MIDTRANS_SERVER_KEY;
   if (!serverKey) throw new Error("MIDTRANS_SERVER_KEY belum diatur");
