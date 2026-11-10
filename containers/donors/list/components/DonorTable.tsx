@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { TableCard } from "@/components/data/TableCard";
 import { useRouter } from "next/navigation";
 import { DonorStatusBadge } from "@/components/donors/DonorStatusBadge";
 import {
@@ -12,7 +13,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatDateTime } from "@/lib/date";
-import { cn } from "@/lib/utils";
 import type { DonorListItem } from "../hooks/useDonors";
 
 type DonorTableProps = {
@@ -25,12 +25,7 @@ export default function DonorTable({ rows, isStale }: DonorTableProps) {
   const router = useRouter();
 
   return (
-    <div
-      className={cn(
-        "rounded-lg border transition-opacity",
-        isStale && "opacity-60",
-      )}
-    >
+    <TableCard isStale={isStale}>
       {/* Tabel bisa di-scroll horizontal di layar kecil (pembungkus bawaan Table). */}
       <Table className="min-w-200">
         <TableHeader>
@@ -75,6 +70,6 @@ export default function DonorTable({ rows, isStale }: DonorTableProps) {
           })}
         </TableBody>
       </Table>
-    </div>
+    </TableCard>
   );
 }

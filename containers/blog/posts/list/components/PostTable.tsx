@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { TableCard } from "@/components/data/TableCard";
 import { ImageIcon, PencilIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -19,7 +20,6 @@ import {
   type PostStatus,
   type PostType,
 } from "@/lib/post";
-import { cn } from "@/lib/utils";
 import type { PostListItem } from "../hooks/usePosts";
 
 const typeBadgeVariant = {
@@ -28,7 +28,8 @@ const typeBadgeVariant = {
 } as const satisfies Record<PostType, string>;
 
 const statusBadgeVariant = {
-  DRAFT: "secondary",
+  // Draft emas: belum tayang di blog donatur (backlog 009).
+  DRAFT: "warning",
   PUBLISH: "default",
 } as const satisfies Record<PostStatus, string>;
 
@@ -40,12 +41,7 @@ type PostTableProps = {
 
 export default function PostTable({ rows, isStale }: PostTableProps) {
   return (
-    <div
-      className={cn(
-        "rounded-lg border transition-opacity",
-        isStale && "opacity-60",
-      )}
-    >
+    <TableCard isStale={isStale}>
       {/* Tabel bisa di-scroll horizontal di layar kecil (pembungkus bawaan Table). */}
       <Table className="min-w-200">
         <TableHeader>
@@ -121,6 +117,6 @@ export default function PostTable({ rows, isStale }: PostTableProps) {
           })}
         </TableBody>
       </Table>
-    </div>
+    </TableCard>
   );
 }

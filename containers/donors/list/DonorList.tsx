@@ -1,7 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  CircleAlertIcon,
+  SearchXIcon,
+  UsersIcon,
+} from "lucide-react";
+import { TableCard } from "@/components/data/TableCard";
+import { EmptyState } from "@/components/feedback/EmptyState";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
@@ -42,30 +51,50 @@ export function DonorList() {
 
     if (isError) {
       return (
-        <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed p-10 text-center">
-          <p className="text-sm text-muted-foreground">
-            Daftar donatur gagal dimuat.
-          </p>
-          <Button
-            variant="outline"
-            disabled={isRefetching}
-            onClick={() => refetch()}
-          >
-            Coba lagi
-          </Button>
-        </div>
+        <TableCard>
+          <EmptyState
+            icon={CircleAlertIcon}
+            title="Daftar donatur gagal dimuat"
+            description="Periksa koneksi internet, lalu coba lagi."
+            action={
+              <Button
+                variant="outline"
+                disabled={isRefetching}
+                onClick={() => refetch()}
+              >
+                Coba lagi
+              </Button>
+            }
+          />
+        </TableCard>
       );
     }
 
     if (data.rows.length === 0) {
       return (
-        <div className="rounded-lg border border-dashed p-10 text-center">
-          <p className="text-sm text-muted-foreground">
-            {isFiltered
-              ? "Tidak ada donatur yang cocok dengan filter"
-              : "Belum ada donatur terdaftar"}
-          </p>
-        </div>
+        <TableCard>
+          {isFiltered ? (
+            <EmptyState
+              icon={SearchXIcon}
+              title="Tidak ada donatur yang cocok"
+              description="Coba kata kunci atau status lain."
+              action={
+                <Button
+                  variant="outline"
+                  onClick={() => changeFilters(emptyDonorFilterValues)}
+                >
+                  Reset filter
+                </Button>
+              }
+            />
+          ) : (
+            <EmptyState
+              icon={UsersIcon}
+              title="Belum ada donatur terdaftar"
+              description="Donatur yang membuat akun di website akan tampil di sini."
+            />
+          )}
+        </TableCard>
       );
     }
 
@@ -103,13 +132,10 @@ export function DonorList() {
 
   return (
     <div className="flex flex-col gap-6 p-6">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold">Donatur</h1>
-        <p className="text-sm text-muted-foreground">
-          Donatur yang mendaftar akun di sobatbaik.org. Donasi tanpa akun ada di
-          halaman Transaksi.
-        </p>
-      </div>
+      <PageHeader
+        title="Donatur"
+        description="Donatur yang mendaftar akun di sobatbaik.org. Donasi tanpa akun ada di halaman Transaksi."
+      />
       <DonorFilters
         values={values}
         onChange={changeFilters}

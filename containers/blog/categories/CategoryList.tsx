@@ -1,7 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { PencilIcon, PlusIcon } from "lucide-react";
+import { CircleAlertIcon, PencilIcon, PlusIcon, TagsIcon } from "lucide-react";
+import { TableCard } from "@/components/data/TableCard";
+import { EmptyState } from "@/components/feedback/EmptyState";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -39,31 +42,45 @@ export function CategoryList() {
 
     if (isError) {
       return (
-        <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed p-10 text-center">
-          <p className="text-sm text-muted-foreground">
-            Daftar kategori gagal dimuat.
-          </p>
-          <Button
-            variant="outline"
-            disabled={isRefetching}
-            onClick={() => refetch()}
-          >
-            Coba lagi
-          </Button>
-        </div>
+        <TableCard>
+          <EmptyState
+            icon={CircleAlertIcon}
+            title="Daftar kategori gagal dimuat"
+            description="Periksa koneksi internet, lalu coba lagi."
+            action={
+              <Button
+                variant="outline"
+                disabled={isRefetching}
+                onClick={() => refetch()}
+              >
+                Coba lagi
+              </Button>
+            }
+          />
+        </TableCard>
       );
     }
 
     if (data.length === 0) {
       return (
-        <div className="rounded-lg border border-dashed p-10 text-center">
-          <p className="text-sm text-muted-foreground">Belum ada kategori</p>
-        </div>
+        <TableCard>
+          <EmptyState
+            icon={TagsIcon}
+            title="Belum ada kategori"
+            description="Buat kategori sebelum menulis artikel atau video."
+            action={
+              <Button onClick={() => openDialog()}>
+                <PlusIcon data-icon="inline-start" />
+                Tambah Kategori
+              </Button>
+            }
+          />
+        </TableCard>
       );
     }
 
     return (
-      <div className="rounded-lg border">
+      <TableCard>
         <Table className="min-w-140">
           <TableHeader>
             <TableRow>
@@ -81,7 +98,7 @@ export function CategoryList() {
                 <TableCell className="pl-4 font-medium">
                   {category.name}
                 </TableCell>
-                <TableCell className="font-mono text-xs text-muted-foreground">
+                <TableCell className="font-mono text-sm text-muted-foreground">
                   {category.alias}
                 </TableCell>
                 <TableCell className="text-right tabular-nums">
@@ -105,19 +122,22 @@ export function CategoryList() {
             ))}
           </TableBody>
         </Table>
-      </div>
+      </TableCard>
     );
   };
 
   return (
     <div className="flex flex-col gap-6 p-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-2xl font-semibold">Kategori Blog</h1>
-        <Button onClick={() => openDialog()}>
-          <PlusIcon data-icon="inline-start" />
-          Tambah Kategori
-        </Button>
-      </div>
+      <PageHeader
+        title="Kategori Blog"
+        description="Kelompokkan artikel dan video, contoh News atau CSR."
+        actions={
+          <Button onClick={() => openDialog()}>
+            <PlusIcon data-icon="inline-start" />
+            Tambah Kategori
+          </Button>
+        }
+      />
       {renderContent()}
       <CategoryFormDialog
         open={dialog.open}

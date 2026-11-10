@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { TableCard } from "@/components/data/TableCard";
 import { TransactionStatusBadge } from "@/components/transactions/TransactionStatusBadge";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -15,7 +16,7 @@ import {
 import { formatDateTime } from "@/lib/date";
 import { getPaymentMethodLabel } from "@/lib/payment-method";
 import type { Tables } from "@/lib/supabase/database.types";
-import { cn, formatRupiah } from "@/lib/utils";
+import { formatRupiah } from "@/lib/utils";
 
 /** Kolom yang dibutuhkan tabel; cocok dengan select daftar transaksi dan riwayat donatur. */
 export type TransactionTableRow = Pick<
@@ -37,6 +38,8 @@ type TransactionTableProps = {
   isStale?: boolean;
   /** `false` di riwayat satu donatur (AKN010), karena kolom Donatur selalu sama. */
   showDonor?: boolean;
+  /** Contoh `shadow-none border` saat tabel sudah berada di dalam Card. */
+  className?: string;
 };
 
 // Dipakai daftar transaksi (TRX003) dan riwayat donasi di detail donatur (AKN010).
@@ -44,16 +47,12 @@ export function TransactionTable({
   rows,
   isStale,
   showDonor = true,
+  className,
 }: TransactionTableProps) {
   const router = useRouter();
 
   return (
-    <div
-      className={cn(
-        "rounded-lg border transition-opacity",
-        isStale && "opacity-60",
-      )}
-    >
+    <TableCard isStale={isStale} className={className}>
       {/* Tabel bisa di-scroll horizontal di layar kecil (pembungkus bawaan Table). */}
       <Table className="min-w-240">
         <TableHeader>
@@ -84,7 +83,7 @@ export function TransactionTable({
                 <TableCell>
                   <Link
                     href={href}
-                    className="font-mono text-xs font-medium hover:underline"
+                    className="font-mono text-sm font-medium hover:underline"
                     onClick={(event) => event.stopPropagation()}
                   >
                     {transaction.order_id}
@@ -99,7 +98,7 @@ export function TransactionTable({
                           <Badge variant="outline">Anonim</Badge>
                         )}
                       </span>
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-sm text-muted-foreground">
                         {transaction.donor_email}
                       </span>
                     </div>
@@ -124,6 +123,6 @@ export function TransactionTable({
           })}
         </TableBody>
       </Table>
-    </div>
+    </TableCard>
   );
 }

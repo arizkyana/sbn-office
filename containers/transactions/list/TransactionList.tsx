@@ -1,7 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  CircleAlertIcon,
+  ReceiptTextIcon,
+  SearchXIcon,
+} from "lucide-react";
+import { TableCard } from "@/components/data/TableCard";
+import { EmptyState } from "@/components/feedback/EmptyState";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { TransactionTable } from "@/components/transactions/TransactionTable";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -53,30 +62,50 @@ export function TransactionList() {
 
     if (isError) {
       return (
-        <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed p-10 text-center">
-          <p className="text-sm text-muted-foreground">
-            Daftar transaksi gagal dimuat.
-          </p>
-          <Button
-            variant="outline"
-            disabled={isRefetching}
-            onClick={() => refetch()}
-          >
-            Coba lagi
-          </Button>
-        </div>
+        <TableCard>
+          <EmptyState
+            icon={CircleAlertIcon}
+            title="Daftar transaksi gagal dimuat"
+            description="Periksa koneksi internet, lalu coba lagi."
+            action={
+              <Button
+                variant="outline"
+                disabled={isRefetching}
+                onClick={() => refetch()}
+              >
+                Coba lagi
+              </Button>
+            }
+          />
+        </TableCard>
       );
     }
 
     if (data.rows.length === 0) {
       return (
-        <div className="rounded-lg border border-dashed p-10 text-center">
-          <p className="text-sm text-muted-foreground">
-            {isFiltered
-              ? "Tidak ada transaksi yang cocok dengan filter"
-              : "Belum ada transaksi"}
-          </p>
-        </div>
+        <TableCard>
+          {isFiltered ? (
+            <EmptyState
+              icon={SearchXIcon}
+              title="Tidak ada transaksi yang cocok"
+              description="Coba ubah kata kunci, status, campaign, atau rentang tanggal."
+              action={
+                <Button
+                  variant="outline"
+                  onClick={() => changeFilters(emptyTransactionFilterValues)}
+                >
+                  Reset filter
+                </Button>
+              }
+            />
+          ) : (
+            <EmptyState
+              icon={ReceiptTextIcon}
+              title="Belum ada transaksi"
+              description="Donasi dari website donatur akan tampil di sini."
+            />
+          )}
+        </TableCard>
       );
     }
 
@@ -114,10 +143,11 @@ export function TransactionList() {
 
   return (
     <div className="flex flex-col gap-6 p-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-2xl font-semibold">Transaksi</h1>
-        <ExportButton filters={filters} disabled={!parsed.success} />
-      </div>
+      <PageHeader
+        title="Transaksi"
+        description="Pantau donasi dan status pembayaran dari Midtrans."
+        actions={<ExportButton filters={filters} disabled={!parsed.success} />}
+      />
       <TransactionFilters
         values={values}
         campaignOptions={campaignOptions}
