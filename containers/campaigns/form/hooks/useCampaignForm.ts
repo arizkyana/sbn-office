@@ -6,12 +6,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { todayInJakarta } from "@/lib/date";
 import { slugify } from "@/lib/slug";
-import { saveCampaign, uploadCover } from "../actions";
-import {
-  campaignSchema,
-  getCoverFileError,
-  type CampaignInput,
-} from "../CampaignForm.types";
+import { saveCampaign } from "../actions";
+import { campaignSchema, type CampaignInput } from "../CampaignForm.types";
 
 type UseCampaignFormOptions = {
   /** Diisi di halaman ubah; kosong di halaman tambah. */
@@ -58,32 +54,6 @@ export default function useCampaignForm({
     isSlugEdited.current = slug !== "";
   };
 
-  const onCoverSelect = async (file: File) => {
-    const fileError = getCoverFileError(file);
-    if (fileError) {
-      form.setError("cover", { message: fileError });
-      return;
-    }
-
-    setIsUploading(true);
-    try {
-      const result = await uploadCover(file);
-      if (!result) return;
-      if (!result.success) {
-        form.setError("cover", { message: result.message });
-        return;
-      }
-      if (result.data) {
-        form.setValue("cover", result.data.url, { shouldDirty: true });
-        form.clearErrors("cover");
-      }
-    } catch {
-      form.setError("cover", { message: "Cover gagal diunggah. Coba lagi." });
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
   const onSubmit = async (values: CampaignInput) => {
     const result = await saveCampaign(values, uuid);
     // Session habis: requireAdmin() melakukan redirect, tidak ada hasil.
@@ -107,8 +77,8 @@ export default function useCampaignForm({
     onSubmit,
     onTitleChange,
     onSlugChange,
-    onCoverSelect,
-    isUploading,
+    // Diisi CoverUpload agar tombol Simpan nonaktif selama cover diunggah.
+    onUploadingChange: setIsUploading,
     isBusy: form.formState.isSubmitting || isUploading || isNavigating,
   };
 }

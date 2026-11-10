@@ -2,25 +2,6 @@ import { z } from "zod";
 import { CAMPAIGN_STATUSES } from "@/lib/campaign";
 import { isEmptyHtml } from "@/lib/html";
 
-// Sama dengan batas bucket campaign-covers (FND006).
-export const COVER_MAX_SIZE = 2 * 1024 * 1024;
-
-export const COVER_EXTENSIONS: Record<string, string> = {
-  "image/jpeg": "jpg",
-  "image/png": "png",
-  "image/webp": "webp",
-};
-
-/** Dipakai di client (sebelum upload) dan di server (`uploadCover`). */
-export function getCoverFileError(file: unknown) {
-  if (!(file instanceof Blob)) return "Pilih file gambar";
-  if (!COVER_EXTENSIONS[file.type]) {
-    return "Format cover harus JPG, PNG, atau WEBP";
-  }
-  if (file.size > COVER_MAX_SIZE) return "Ukuran cover maksimal 2 MB";
-  return null;
-}
-
 const dateSchema = z.iso.date("Format tanggal tidak valid");
 
 export const campaignSchema = z
@@ -37,10 +18,7 @@ export const campaignSchema = z
         /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
         "Gunakan huruf kecil, angka, dan tanda - di antara kata",
       ),
-    description: z
-      .string()
-      .trim()
-      .max(160, "Deskripsi maksimal 160 karakter"),
+    description: z.string().trim().max(160, "Deskripsi maksimal 160 karakter"),
     content: z.string(),
     cover: z.union([z.literal(""), z.url("URL cover tidak valid")]),
     start_date: z.string().min(1, "Tanggal mulai wajib diisi").pipe(dateSchema),

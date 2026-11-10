@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Loader2Icon } from "lucide-react";
 import { Controller } from "react-hook-form";
 import { RichTextEditor } from "@/components/editor/RichTextEditor";
+import { CoverUpload } from "@/components/upload/CoverUpload";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -25,8 +26,8 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { campaignStatusOptions } from "@/lib/campaign";
 import { formatRupiah } from "@/lib/utils";
+import { uploadCover } from "./actions";
 import type { CampaignInput } from "./CampaignForm.types";
-import CoverUpload from "./components/CoverUpload";
 import useCampaignForm from "./hooks/useCampaignForm";
 
 const DESCRIPTION_MAX = 160;
@@ -44,8 +45,9 @@ export function CampaignForm({ uuid, defaultValues }: CampaignFormProps) {
     onSubmit,
     onTitleChange,
     onSlugChange,
-    onCoverSelect,
-    isUploading,
+    setError,
+    clearErrors,
+    onUploadingChange,
     isBusy,
     formState: { errors, isSubmitting },
   } = useCampaignForm({ uuid, defaultValues });
@@ -128,8 +130,7 @@ export function CampaignForm({ uuid, defaultValues }: CampaignFormProps) {
                     />
                     <div className="flex justify-between gap-4">
                       <FieldDescription>
-                        Ringkasan singkat untuk mesin pencari dan pratinjau
-                        link
+                        Ringkasan singkat untuk mesin pencari dan pratinjau link
                       </FieldDescription>
                       <span className="text-sm text-muted-foreground tabular-nums">
                         {field.value.length}/{DESCRIPTION_MAX}
@@ -206,9 +207,15 @@ export function CampaignForm({ uuid, defaultValues }: CampaignFormProps) {
                     <CoverUpload
                       id="cover"
                       value={field.value}
-                      isUploading={isUploading}
+                      alt="Pratinjau cover campaign"
                       invalid={!!error}
-                      onSelect={onCoverSelect}
+                      upload={uploadCover}
+                      onChange={(url) => {
+                        field.onChange(url);
+                        clearErrors("cover");
+                      }}
+                      onError={(message) => setError("cover", { message })}
+                      onUploadingChange={onUploadingChange}
                     />
                     <FieldDescription>
                       JPG, PNG, atau WEBP, maksimal 2 MB. Rasio 16:9.

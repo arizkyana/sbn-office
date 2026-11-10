@@ -1,28 +1,69 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import Image from "next/image";
 import { ImageIcon, Loader2Icon, UploadIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { COVER_EXTENSIONS } from "../CampaignForm.types";
+import { COVER_EXTENSIONS, getCoverFileError } from "@/lib/cover";
+import type { ActionResult } from "@/lib/types";
 
 type CoverUploadProps = {
   id: string;
   /** URL publik cover yang sudah diunggah. */
   value: string;
-  isUploading: boolean;
+  /** Teks alternatif pratinjau, contoh "Pratinjau cover campaign". */
+  alt: string;
   invalid?: boolean;
-  onSelect: (file: File) => void;
+  /** Server Action upload, contoh `uploadCover` (campaign) atau `uploadPostCover`. */
+  upload: (file: File) => Promise<ActionResult<{ url: string }>>;
+  onChange: (url: string) => void;
+  onError: (message: string) => void;
+  /** Agar form bisa menonaktifkan tombol Simpan selama upload. */
+  onUploadingChange?: (isUploading: boolean) => void;
 };
 
-export default function CoverUpload({
+// Cover langsung diunggah saat file dipilih; form hanya menyimpan URL-nya.
+export function CoverUpload({
   id,
   value,
-  isUploading,
+  alt,
   invalid,
-  onSelect,
+  upload,
+  onChange,
+  onError,
+  onUploadingChange,
 }: CoverUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = useState(false);
+
+  const changeUploading = (uploading: boolean) => {
+    setIsUploading(uploading);
+    onUploadingChange?.(uploading);
+  };
+
+  const handleSelect = async (file: File) => {
+    const fileError = getCoverFileError(file);
+    if (fileError) {
+      onError(fileError);
+      return;
+    }
+
+    changeUploading(true);
+    try {
+      const result = await upload(file);
+      // Session habis: requireAdmin() melakukan redirect, tidak ada hasil.
+      if (!result) return;
+      if (!result.success) {
+        onError(result.message);
+        return;
+      }
+      if (result.data) onChange(result.data.url);
+    } catch {
+      onError("Cover gagal diunggah. Coba lagi.");
+    } finally {
+      changeUploading(false);
+    }
+  };
 
   return (
     <div className="flex flex-col gap-2">
@@ -33,7 +74,7 @@ export default function CoverUpload({
         {value ? (
           <Image
             src={value}
-            alt="Pratinjau cover campaign"
+            alt={alt}
             fill
             sizes="(min-width: 1024px) 320px, 100vw"
             className="object-cover"
@@ -62,7 +103,7 @@ export default function CoverUpload({
           const file = event.target.files?.[0];
           // Reset agar file yang sama bisa dipilih lagi setelah gagal.
           event.target.value = "";
-          if (file) onSelect(file);
+          if (file) handleSelect(file);
         }}
       />
       <Button
