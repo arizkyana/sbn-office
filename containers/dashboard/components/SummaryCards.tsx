@@ -25,14 +25,14 @@ export default function SummaryCards({
       // yayasan lebih kecil, jadi admin perlu mencocokkan dengan Midtrans.
       note: (
         <>
-          Belum dipotong biaya Midtrans. Selalu cocokkan dengan{" "}
+          Belum dipotong biaya Midtrans.{" "}
           <a
             href={MIDTRANS_DASHBOARD_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="font-semibold underline underline-offset-2"
           >
-            transaksi di Midtrans
+            cek transaksi di Midtrans
           </a>
           .
         </>
