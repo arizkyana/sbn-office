@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Loader2Icon } from "lucide-react";
 import { Controller, useWatch } from "react-hook-form";
+import { uploadEditorImage } from "@/components/editor/actions";
 import { RichTextEditor } from "@/components/editor/RichTextEditor";
 import { CoverUpload } from "@/components/upload/CoverUpload";
 import { Button } from "@/components/ui/button";
@@ -237,6 +238,7 @@ export function PostForm({ uuid, defaultValues }: PostFormProps) {
                         value={field.value}
                         onChange={field.onChange}
                         onBlur={field.onBlur}
+                        imageUpload={uploadEditorImage}
                       />
                       <FieldError errors={[error]} />
                     </Field>

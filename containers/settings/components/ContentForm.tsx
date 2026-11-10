@@ -2,6 +2,7 @@
 
 import { ExternalLinkIcon, Loader2Icon } from "lucide-react";
 import { Controller } from "react-hook-form";
+import { uploadEditorImage } from "@/components/editor/actions";
 import { RichTextEditor } from "@/components/editor/RichTextEditor";
 import { Button } from "@/components/ui/button";
 import {
@@ -103,6 +104,7 @@ export default function ContentForm({ kind, defaultValue }: ContentFormProps) {
                   value={field.value}
                   onChange={field.onChange}
                   onBlur={field.onBlur}
+                  imageUpload={uploadEditorImage}
                 />
                 <FieldError errors={[error]} />
               </Field>

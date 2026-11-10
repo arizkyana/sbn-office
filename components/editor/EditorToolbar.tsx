@@ -1,20 +1,24 @@
 "use client";
 
+import { useRef } from "react";
 import { useEditorState, type Editor } from "@tiptap/react";
 import {
   BoldIcon,
   Heading1Icon,
   Heading2Icon,
   Heading3Icon,
+  ImageIcon,
   ItalicIcon,
   LinkIcon,
   ListIcon,
   ListOrderedIcon,
+  Loader2Icon,
   Redo2Icon,
   Undo2Icon,
   type LucideIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { COVER_EXTENSIONS } from "@/lib/cover";
 import { cn } from "@/lib/utils";
 
 type ToolbarButtonProps = {
@@ -44,12 +48,24 @@ function ToolbarButton({
       onClick={onClick}
       className={cn(active && "bg-muted text-foreground")}
     >
-      <Icon />
+      <Icon className={cn(Icon === Loader2Icon && "animate-spin")} />
     </Button>
   );
 }
 
-export function EditorToolbar({ editor }: { editor: Editor }) {
+type EditorToolbarProps = {
+  editor: Editor;
+  /** Diisi bila editor menerima gambar; menerima file dari tombol "Gambar". */
+  onImageSelect?: (files: File[]) => void;
+  isUploadingImage?: boolean;
+};
+
+export function EditorToolbar({
+  editor,
+  onImageSelect,
+  isUploadingImage,
+}: EditorToolbarProps) {
+  const imageInputRef = useRef<HTMLInputElement>(null);
   const state = useEditorState({
     editor,
     selector: ({ editor }) => ({
@@ -129,6 +145,29 @@ export function EditorToolbar({ editor }: { editor: Editor }) {
         active={state.link}
         onClick={setLink}
       />
+      {onImageSelect && (
+        <>
+          <ToolbarButton
+            label={isUploadingImage ? "Mengunggah gambar" : "Gambar"}
+            icon={isUploadingImage ? Loader2Icon : ImageIcon}
+            disabled={isUploadingImage}
+            onClick={() => imageInputRef.current?.click()}
+          />
+          <input
+            ref={imageInputRef}
+            type="file"
+            accept={Object.keys(COVER_EXTENSIONS).join(",")}
+            multiple
+            hidden
+            onChange={(event) => {
+              const files = Array.from(event.target.files ?? []);
+              // Reset agar file yang sama bisa dipilih lagi.
+              event.target.value = "";
+              if (files.length > 0) onImageSelect(files);
+            }}
+          />
+        </>
+      )}
       <ToolbarButton
         label="Urungkan"
         icon={Undo2Icon}

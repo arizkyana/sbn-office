@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Slider } from "@/components/ui/slider";
 import { COVER_ASPECT, COVER_OUTPUT_TYPE } from "@/lib/cover";
-import { cropImage } from "@/lib/crop-image";
+import { cropImage } from "@/lib/image-processing";
 
 const MIN_ZOOM = 1;
 const MAX_ZOOM = 3;

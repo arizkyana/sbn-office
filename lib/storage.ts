@@ -4,7 +4,7 @@ import { COVER_EXTENSIONS, getCoverFileError } from "@/lib/cover";
 import { createClient } from "@/lib/supabase/server";
 import type { ActionResult } from "@/lib/types";
 
-export type ImageBucket = "campaign-covers" | "post-covers";
+export type ImageBucket = "campaign-covers" | "post-covers" | "content-images";
 
 /**
  * Upload gambar ke bucket publik dengan nama acak, lalu kembalikan URL publiknya.
