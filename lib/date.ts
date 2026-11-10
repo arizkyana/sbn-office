@@ -14,6 +14,14 @@ const displayDateFormatter = new Intl.DateTimeFormat("id-ID", {
   dateStyle: "medium",
 });
 
+const displayDateTimeFormatter = new Intl.DateTimeFormat("id-ID", {
+  timeZone: TIME_ZONE,
+  dateStyle: "medium",
+  timeStyle: "short",
+});
+
+const WIB_OFFSET_MS = 7 * 60 * 60 * 1000;
+
 /** Tanggal hari ini di Asia/Jakarta, format `YYYY-MM-DD`. */
 export function todayInJakarta() {
   return inputDateFormatter.format(new Date());
@@ -37,4 +45,17 @@ export function endOfDayJakarta(date: string) {
 /** `timestamptz` → teks tanggal, contoh "10 Nov 2026". */
 export function formatDate(timestamp: string) {
   return displayDateFormatter.format(new Date(timestamp));
+}
+
+/** `timestamptz` → teks tanggal dan jam WIB, contoh "10 Nov 2026, 14.05 WIB". */
+export function formatDateTime(timestamp: string) {
+  return `${displayDateTimeFormatter.format(new Date(timestamp))} WIB`;
+}
+
+/**
+ * `timestamptz` → `Date` yang nilai UTC-nya sama dengan jam WIB. Untuk sel tanggal
+ * Excel, yang tidak menyimpan zona waktu: sel menampilkan jam WIB apa adanya.
+ */
+export function toJakartaDateTime(timestamp: string) {
+  return new Date(new Date(timestamp).getTime() + WIB_OFFSET_MS);
 }

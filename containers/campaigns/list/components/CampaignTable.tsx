@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ImageIcon, PencilIcon } from "lucide-react";
+import { CampaignStatusBadge } from "@/components/campaigns/CampaignStatusBadge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -15,7 +16,6 @@ import { getProgressPercent } from "@/lib/campaign";
 import { formatDate } from "@/lib/date";
 import { cn, formatRupiah } from "@/lib/utils";
 import type { CampaignListItem } from "../hooks/useCampaigns";
-import CampaignStatusBadge from "./CampaignStatusBadge";
 
 type CampaignTableProps = {
   rows: CampaignListItem[];

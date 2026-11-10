@@ -1,6 +1,7 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import type { CampaignStatus } from "@/lib/campaign";
 import { createClient } from "@/lib/supabase/client";
+import { escapeLike } from "@/lib/utils";
 
 export const PAGE_SIZE = 10;
 
@@ -11,11 +12,6 @@ type CampaignListParams = {
   search: string;
   status: CampaignStatusFilter;
 };
-
-// % dan _ dari input dicari apa adanya, bukan sebagai wildcard ilike.
-function escapeLike(value: string) {
-  return value.replace(/[\\%_]/g, (char) => `\\${char}`);
-}
 
 async function fetchCampaigns({ page, search, status }: CampaignListParams) {
   const supabase = createClient();

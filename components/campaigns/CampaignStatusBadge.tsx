@@ -7,11 +7,7 @@ const badgeVariant = {
   ARCHIVED: "outline",
 } as const satisfies Record<CampaignStatus, string>;
 
-export default function CampaignStatusBadge({
-  status,
-}: {
-  status: CampaignStatus;
-}) {
+export function CampaignStatusBadge({ status }: { status: CampaignStatus }) {
   return (
     <Badge variant={badgeVariant[status]}>{campaignStatusLabel[status]}</Badge>
   );
