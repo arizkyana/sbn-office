@@ -8,7 +8,7 @@ export const COVER_EXTENSIONS: Record<string, string> = {
 };
 
 // File asli boleh lebih besar dari batas bucket karena dipotong dan dikompres
-// di browser (lib/crop-image.ts) sebelum diunggah.
+// di browser (lib/image-processing.ts) sebelum diunggah.
 export const COVER_SOURCE_MAX_SIZE = 10 * 1024 * 1024;
 
 export const COVER_ASPECT = 16 / 9;
