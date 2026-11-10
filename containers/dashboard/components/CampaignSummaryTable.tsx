@@ -1,5 +1,8 @@
 import Link from "next/link";
+import { HeartHandshakeIcon } from "lucide-react";
 import { CampaignStatusBadge } from "@/components/campaigns/CampaignStatusBadge";
+import { EmptyState } from "@/components/feedback/EmptyState";
+import { Progress } from "@/components/ui/progress";
 import {
   Table,
   TableBody,
@@ -21,7 +24,12 @@ export default function CampaignSummaryTable({
 }) {
   if (rows.length === 0) {
     return (
-      <p className="px-4 text-sm text-muted-foreground">Belum ada campaign</p>
+      <EmptyState
+        icon={HeartHandshakeIcon}
+        title="Belum ada campaign"
+        description="Campaign yang dibuat akan tampil di sini."
+        className="py-6"
+      />
     );
   }
 
@@ -34,7 +42,7 @@ export default function CampaignSummaryTable({
           <TableHead>Status</TableHead>
           <TableHead className="text-right">Target</TableHead>
           <TableHead className="text-right">Terkumpul</TableHead>
-          <TableHead className="text-right">Progres</TableHead>
+          <TableHead>Progres</TableHead>
           <TableHead className="text-right">Donasi</TableHead>
           <TableHead className="pr-4">Berakhir</TableHead>
         </TableRow>
@@ -69,8 +77,22 @@ export default function CampaignSummaryTable({
               <TableCell className="text-right tabular-nums">
                 {formatRupiah(campaign.collected)}
               </TableCell>
-              <TableCell className="text-right tabular-nums">
-                {percent === null ? "-" : `${percent}%`}
+              <TableCell>
+                {percent === null ? (
+                  <span className="text-muted-foreground">Tanpa target</span>
+                ) : (
+                  <div className="flex w-36 items-center gap-2">
+                    <Progress
+                      value={percent}
+                      aria-label={`Progres ${campaign.title}`}
+                      // Bar emas, sama dengan CampaignProgress di sbn-donatur.
+                      className="flex-1 **:data-[slot=progress-indicator]:bg-brand-gold"
+                    />
+                    <span className="text-sm font-semibold tabular-nums">
+                      {percent}%
+                    </span>
+                  </div>
+                )}
               </TableCell>
               <TableCell className="text-right tabular-nums">
                 {campaign.successCount}

@@ -1,5 +1,7 @@
 import Link from "next/link";
-import { ArrowRightIcon } from "lucide-react";
+import { ArrowRightIcon, ChartBarIcon } from "lucide-react";
+import { EmptyState } from "@/components/feedback/EmptyState";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -29,23 +31,28 @@ export async function Dashboard() {
 
   return (
     <div className="flex flex-col gap-6 p-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-2xl font-semibold">Dashboard</h1>
-        <Button
-          variant="outline"
-          nativeButton={false}
-          render={<Link href="/transactions" />}
-        >
-          Lihat semua transaksi
-          <ArrowRightIcon data-icon="inline-end" />
-        </Button>
-      </div>
+      <PageHeader
+        title="Dashboard"
+        description="Ringkasan donasi yang berhasil dari semua campaign."
+        actions={
+          <Button
+            variant="outline"
+            nativeButton={false}
+            render={<Link href="/transactions" />}
+          >
+            Lihat semua transaksi
+            <ArrowRightIcon data-icon="inline-end" />
+          </Button>
+        }
+      />
 
       <SummaryCards {...summary} />
 
       <Card>
         <CardHeader>
-          <CardTitle>Dana Terkumpul per Campaign</CardTitle>
+          <CardTitle className="text-lg font-bold">
+            Dana Terkumpul per Campaign
+          </CardTitle>
           <CardDescription>
             {CHART_LIMIT} campaign dengan dana terbesar
           </CardDescription>
@@ -54,16 +61,21 @@ export async function Dashboard() {
           {chartRows.length > 0 ? (
             <CampaignCollectedChart rows={chartRows} />
           ) : (
-            <p className="text-sm text-muted-foreground">
-              Belum ada donasi yang berhasil
-            </p>
+            <EmptyState
+              icon={ChartBarIcon}
+              title="Belum ada donasi yang berhasil"
+              description="Grafik muncul setelah donasi pertama berhasil dibayar."
+              className="py-6"
+            />
           )}
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>Ringkasan per Campaign</CardTitle>
+          <CardTitle className="text-lg font-bold">
+            Ringkasan per Campaign
+          </CardTitle>
         </CardHeader>
         <CardContent className="px-0">
           <CampaignSummaryTable rows={campaigns} />
