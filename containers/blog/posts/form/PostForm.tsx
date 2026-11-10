@@ -355,8 +355,8 @@ export function PostForm({ uuid, defaultValues }: PostFormProps) {
                       />
                       <FieldDescription>
                         {isVideo
-                          ? "Kosongkan untuk memakai thumbnail YouTube. JPG, PNG, atau WEBP, maksimal 2 MB."
-                          : "JPG, PNG, atau WEBP, maksimal 2 MB. Rasio 16:9."}
+                          ? "Kosongkan untuk memakai thumbnail YouTube. JPG, PNG, atau WEBP, maksimal 10 MB, dipotong ke rasio 16:9."
+                          : "JPG, PNG, atau WEBP, maksimal 10 MB. Gambar dipotong ke rasio 16:9."}
                       </FieldDescription>
                       <FieldError errors={[error]} />
                     </Field>

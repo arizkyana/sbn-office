@@ -1,11 +1,16 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { ImageIcon, Loader2Icon, UploadIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { COVER_EXTENSIONS, getCoverFileError } from "@/lib/cover";
+import {
+  COVER_EXTENSIONS,
+  getCoverFileError,
+  getCoverSourceError,
+} from "@/lib/cover";
 import type { ActionResult } from "@/lib/types";
+import { CoverCropDialog } from "./CoverCropDialog";
 
 type CoverUploadProps = {
   id: string;
@@ -22,7 +27,8 @@ type CoverUploadProps = {
   onUploadingChange?: (isUploading: boolean) => void;
 };
 
-// Cover langsung diunggah saat file dipilih; form hanya menyimpan URL-nya.
+// File yang dipilih dipotong ke 16:9 di dialog, lalu langsung diunggah;
+// form hanya menyimpan URL-nya.
 export function CoverUpload({
   id,
   value,
@@ -35,13 +41,32 @@ export function CoverUpload({
 }: CoverUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
+  // Object URL file asli yang sedang dibuka di dialog crop.
+  const [cropSrc, setCropSrc] = useState<string | null>(null);
+
+  // Object URL dicabut saat dialog ditutup atau komponen dilepas.
+  useEffect(() => {
+    if (!cropSrc) return;
+    return () => URL.revokeObjectURL(cropSrc);
+  }, [cropSrc]);
 
   const changeUploading = (uploading: boolean) => {
     setIsUploading(uploading);
     onUploadingChange?.(uploading);
   };
 
-  const handleSelect = async (file: File) => {
+  const handleSelect = (file: File) => {
+    const sourceError = getCoverSourceError(file);
+    if (sourceError) {
+      onError(sourceError);
+      return;
+    }
+    setCropSrc(URL.createObjectURL(file));
+  };
+
+  const handleCropped = async (file: File) => {
+    setCropSrc(null);
+
     const fileError = getCoverFileError(file);
     if (fileError) {
       onError(fileError);
@@ -115,6 +140,11 @@ export function CoverUpload({
         <UploadIcon />
         {value ? "Ganti cover" : "Pilih gambar"}
       </Button>
+      <CoverCropDialog
+        src={cropSrc}
+        onCancel={() => setCropSrc(null)}
+        onConfirm={handleCropped}
+      />
     </div>
   );
 }

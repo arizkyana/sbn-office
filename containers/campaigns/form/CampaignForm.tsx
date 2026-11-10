@@ -218,7 +218,8 @@ export function CampaignForm({ uuid, defaultValues }: CampaignFormProps) {
                       onUploadingChange={onUploadingChange}
                     />
                     <FieldDescription>
-                      JPG, PNG, atau WEBP, maksimal 2 MB. Rasio 16:9.
+                      JPG, PNG, atau WEBP, maksimal 10 MB. Gambar dipotong ke
+                      rasio 16:9.
                     </FieldDescription>
                     <FieldError errors={[error]} />
                   </Field>
