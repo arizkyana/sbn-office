@@ -10,16 +10,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - `../sbn-donatur`: app publik untuk donatur, mengikuti pola source code app ini.
 - `../sbn-supabase`: migration, storage bucket, dan generate types Supabase. Skema database diubah di sana, bukan di sini.
-- `../../planning/init.md`: spesifikasi utama (routes, data model, RLS, design pattern). `../../planning/001-fondasi.md`: backlog fondasi (task `FND001`–`FND017`). `../../planning/002-campaign.md`: backlog campaign (task `CMP001`–`CMP012`). `../../planning/005-akun-donatur.md`: backlog akun donatur (task office `AKN009`–`AKN011`). Baca dokumen ini sebelum mengerjakan fitur.
+- `../../planning/init.md`: spesifikasi utama (routes, data model, RLS, design pattern). `../../planning/001-fondasi.md`: backlog fondasi (task `FND001`–`FND017`). `../../planning/002-campaign.md`: backlog campaign (task `CMP001`–`CMP012`). `../../planning/005-akun-donatur.md`: backlog akun donatur (task office `AKN009`–`AKN011`). `../../planning/006-blog.md`: backlog blog (task office `BLG001`–`BLG005`). Baca dokumen ini sebelum mengerjakan fitur.
 
 Fondasi sudah selesai: Supabase client, `proxy.ts`, login admin, proteksi halaman, dan sidebar. Modul yang sudah ada:
 
 - campaign (`/campaigns`, `/campaigns/new`, `/campaigns/[uuid]`) di `containers/campaigns/`;
 - transaksi (`/transactions`, `/transactions/[uuid]`, `/transactions/export`) di `containers/transactions/`;
 - dashboard (`/`) di `containers/dashboard/`;
-- donatur (`/donors`, `/donors/[id]`) di `containers/donors/`.
+- donatur (`/donors`, `/donors/[id]`) di `containers/donors/`;
+- blog (`/blog/posts`, `/blog/posts/new`, `/blog/posts/[uuid]`, `/blog/categories`) di `containers/blog/`.
 
-Halaman modul lain (blog, pengaturan) belum ada; menunya sudah tersedia di sidebar (`components/layout/navigation.ts`).
+Halaman pengaturan belum ada; menunya sudah tersedia di sidebar (`components/layout/navigation.ts`).
 
 Route Office: `/auth/login`, `/` (dashboard), `/campaigns`, `/transactions`, `/donors`, `/blog/posts`, `/blog/categories`, `/settings`. Semua halaman admin dibuat di route group `app/(dashboard)/`, supaya ikut layout sidebar dan `AdminGate`.
 
@@ -71,13 +72,15 @@ Belum ada test runner. Setelah memindah atau menghapus route, `npx tsc --noEmit`
   - `isActiveAdmin()`;
   - `requireAdmin()` (mengembalikan admin yang login, termasuk `id` untuk kolom `users_id`).
 - Helper bersama di `lib/`:
-  - `slug.ts` (`slugify()`), `html.ts` (`isEmptyHtml()`), `sanitize.ts` (`sanitizeRichText()`, server-only, allowlist sama dengan output editor);
+  - `slug.ts` (`slugify()`, `SLUG_PATTERN` untuk slug campaign/post dan alias kategori), `html.ts` (`isEmptyHtml()`), `sanitize.ts` (`sanitizeRichText()`, server-only, allowlist sama dengan output editor);
   - `utils.ts` (`formatRupiah()`); `search.ts` (`escapeLike()` dan `buildIlikeOrFilter()` untuk pencarian `ilike`/`.or()` di daftar campaign, transaksi, dan donatur);
   - `date.ts` (zona Asia/Jakarta: nilai `<input type="date">`, awal/akhir hari untuk filter, `formatDate()`, `formatDateTime()`, dan `toJakartaDateTime()` untuk sel tanggal Excel);
-  - `campaign.ts` (label/opsi status, `getProgressPercent()`);
+  - `campaign.ts` (label/opsi status, `getProgressPercent()`); `post.ts` (label/opsi tipe dan status post, `getPostImage()`: cover atau thumbnail YouTube);
+  - `cover.ts` (batas ukuran/format cover dan `getCoverFileError()`, dipakai client dan server); `storage.ts` (server-only, `uploadImage(bucket, file)` untuk `campaign-covers` dan `post-covers`; pemanggilnya wajib `requireAdmin()` lebih dulu);
+  - `youtube.ts` (`getYouTubeId()`, `getYouTubeEmbedUrl()`, `getYouTubeThumbnail()`). Isinya sama persis dengan `sbn-donatur/lib/youtube.ts`; bila diubah, salin ke app lain;
   - `transaction.ts` (label, opsi, dan varian badge status pembayaran), `payment-method.ts` (`getPaymentMethodLabel()`);
   - `midtrans.ts` (server-only): `getTransactionStatus()`, `mapPaymentStatus()`, `getPaidAt()`. Salinan sebagian `sbn-donatur/lib/midtrans.ts`; bila logika status berubah, ubah keduanya.
-- Komponen yang dipakai lebih dari satu container (named export): badge status di `components/campaigns/`, `components/transactions/`, dan `components/donors/`; `components/transactions/TransactionTable.tsx` (daftar transaksi dan riwayat donasi di detail donatur, prop `showDonor`); `components/detail/DetailList.tsx` (daftar label–nilai di halaman detail).
+- Komponen yang dipakai lebih dari satu container (named export): badge status di `components/campaigns/`, `components/transactions/`, dan `components/donors/`; `components/transactions/TransactionTable.tsx` (daftar transaksi dan riwayat donasi di detail donatur, prop `showDonor`); `components/detail/DetailList.tsx` (daftar label–nilai di halaman detail); `components/upload/CoverUpload.tsx` (upload cover lewat prop `upload`, yaitu Server Action seperti `uploadCover` atau `uploadPostCover`; form menerima URL lewat `onChange` dan status upload lewat `onUploadingChange`).
 - `components/editor/RichTextEditor.tsx`: editor Tiptap (HTML) yang dipakai bersama campaign, blog, dan pengaturan lewat `Controller` react-hook-form. `hooks/use-debounced-value.ts` untuk pencarian di halaman daftar.
 - Fungsi baca data di server (Server Component) ditaruh di `containers/<modul>/<halaman>/queries.ts` dan dibungkus `React.cache()`, contoh `getCampaignByUuid()`.
 
@@ -93,6 +96,12 @@ Belum ada test runner. Setelah memindah atau menghapus route, `npx tsc --noEmit`
 - Daftar membaca `profiles` ber-role `DONATUR`, termasuk `profiles.email` yang disinkronkan trigger dari `auth.users` (AKN001), karena `auth.users` tidak bisa dibaca lewat API. Akun ADMIN tidak tampil dan tidak bisa diubah dari halaman ini.
 - Route detail memakai `profiles.id` (uuid `users_id`), sama dengan link "Lihat akun donatur" di detail transaksi. Riwayat donasi memakai query key yang diawali `"transactions"` agar ikut diperbarui saat transaksi dicek ulang.
 - `setDonorActive()` mengubah dua hal lewat admin client: ban di Supabase Auth (`ban_duration` `876000h`/`none`, agar login ditolak dan session tidak bisa diperpanjang) dan `profiles.is_active` (dibaca sbn-donatur untuk login, `requireDonatur()`, dan prefill donasi). Bila update profil gagal, ban dikembalikan.
+
+`containers/blog/` (backlog 006):
+
+- Kategori dikelola lewat dialog (`components/ui/dialog.tsx`) di satu halaman tanpa pagination. Hapus ditolak bila kategori masih dipakai post (`23503`, FK `on delete restrict`). Opsi kategori untuk form dan filter post ada di `categories/hooks/useCategoryOptions.ts` (key `["categories", "options"]`).
+- Form post dipakai halaman tambah dan ubah. `video_url` wajib dan harus dikenali `getYouTubeId()` untuk VIDEO, juga saat DRAFT (constraint database), dan disimpan `null` untuk ARTICLE. `published_at` diisi `savePost()` hanya saat pertama kali PUBLISH, lalu tidak berubah lagi.
+- `categories_id` di form berupa string (value Select) dan diubah ke angka di action.
 
 ### Alur auth
 
