@@ -10,7 +10,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - `../sbn-donatur`: app publik untuk donatur, mengikuti pola source code app ini.
 - `../sbn-supabase`: migration, storage bucket, dan generate types Supabase. Skema database diubah di sana, bukan di sini.
-- `../../planning/init.md`: spesifikasi utama (routes, data model, RLS, design pattern). `../../planning/001-fondasi.md`: backlog fondasi (task `FND001`–`FND017`). `../../planning/002-campaign.md`: backlog campaign (task `CMP001`–`CMP012`). `../../planning/005-akun-donatur.md`: backlog akun donatur (task office `AKN009`–`AKN011`). `../../planning/006-blog.md`: backlog blog (task office `BLG001`–`BLG005`). Baca dokumen ini sebelum mengerjakan fitur.
+- `../../planning/init.md`: spesifikasi utama (routes, data model, RLS, design pattern). `../../planning/001-fondasi.md`: backlog fondasi (task `FND001`–`FND017`). `../../planning/002-campaign.md`: backlog campaign (task `CMP001`–`CMP012`). `../../planning/005-akun-donatur.md`: backlog akun donatur (task office `AKN009`–`AKN011`). `../../planning/006-blog.md`: backlog blog (task office `BLG001`–`BLG005`). `../../planning/007-pengaturan.md`: backlog pengaturan (task office `SET001`–`SET002`). Baca dokumen ini sebelum mengerjakan fitur.
 
 Fondasi sudah selesai: Supabase client, `proxy.ts`, login admin, proteksi halaman, dan sidebar. Modul yang sudah ada:
 
@@ -18,9 +18,10 @@ Fondasi sudah selesai: Supabase client, `proxy.ts`, login admin, proteksi halama
 - transaksi (`/transactions`, `/transactions/[uuid]`, `/transactions/export`) di `containers/transactions/`;
 - dashboard (`/`) di `containers/dashboard/`;
 - donatur (`/donors`, `/donors/[id]`) di `containers/donors/`;
-- blog (`/blog/posts`, `/blog/posts/new`, `/blog/posts/[uuid]`, `/blog/categories`) di `containers/blog/`.
+- blog (`/blog/posts`, `/blog/posts/new`, `/blog/posts/[uuid]`, `/blog/categories`) di `containers/blog/`;
+- pengaturan (`/settings`) di `containers/settings/`.
 
-Halaman pengaturan belum ada; menunya sudah tersedia di sidebar (`components/layout/navigation.ts`).
+Semua menu sidebar (`components/layout/navigation.ts`) sudah punya halaman.
 
 Route Office: `/auth/login`, `/` (dashboard), `/campaigns`, `/transactions`, `/donors`, `/blog/posts`, `/blog/categories`, `/settings`. Semua halaman admin dibuat di route group `app/(dashboard)/`, supaya ikut layout sidebar dan `AdminGate`.
 
@@ -80,6 +81,7 @@ Belum ada test runner. Setelah memindah atau menghapus route, `npx tsc --noEmit`
   - `cover.ts`: batas file asli 10 MB (`getCoverSourceError()`, sebelum crop) dan batas file yang diunggah 2 MB sesuai bucket (`getCoverFileError()`, dipakai client dan server), serta rasio dan format hasil crop (JPEG 16:9, lebar maksimal 1600 px); `crop-image.ts` (khusus browser, `cropImage()` memotong area crop lewat canvas); `storage.ts` (server-only, `uploadImage(bucket, file)` untuk `campaign-covers` dan `post-covers`; pemanggilnya wajib `requireAdmin()` lebih dulu);
   - `youtube.ts` (`getYouTubeId()`, `getYouTubeEmbedUrl()`, `getYouTubeThumbnail()`). Isinya sama persis dengan `sbn-donatur/lib/youtube.ts`; bila diubah, salin ke app lain;
   - `transaction.ts` (label, opsi, dan varian badge status pembayaran), `payment-method.ts` (`getPaymentMethodLabel()`);
+  - `whatsapp.ts` (`normalizeWhatsappNumber()`: `08…`/`+62…`/`62…` → `62…` tanpa `+`, format `wa.me`); `donatur.ts` (`getDonaturUrl(path)` dari `NEXT_PUBLIC_DONATUR_URL`, `null` bila env kosong);
   - `midtrans.ts` (server-only): `getTransactionStatus()`, `mapPaymentStatus()`, `getPaidAt()`. Salinan sebagian `sbn-donatur/lib/midtrans.ts`; bila logika status berubah, ubah keduanya.
 - Komponen yang dipakai lebih dari satu container (named export): badge status di `components/campaigns/`, `components/transactions/`, dan `components/donors/`; `components/transactions/TransactionTable.tsx` (daftar transaksi dan riwayat donasi di detail donatur, prop `showDonor`); `components/detail/DetailList.tsx` (daftar label–nilai di halaman detail); `components/upload/CoverUpload.tsx` (upload cover lewat prop `upload`, yaitu Server Action seperti `uploadCover` atau `uploadPostCover`; form menerima URL lewat `onChange` dan status upload lewat `onUploadingChange`). File yang dipilih dibuka dulu di `CoverCropDialog` (`react-easy-crop`: geser, zoom slider/scroll/cubit, rasio terkunci 16:9), lalu hasil crop yang sudah dikompres diunggah. `components/ui/slider.tsx` merender dua thumb bila `value` berupa angka, jadi kirim array (`value={[zoom]}`).
 - `components/editor/RichTextEditor.tsx`: editor Tiptap (HTML) yang dipakai bersama campaign, blog, dan pengaturan lewat `Controller` react-hook-form. `hooks/use-debounced-value.ts` untuk pencarian di halaman daftar.
@@ -103,6 +105,12 @@ Belum ada test runner. Setelah memindah atau menghapus route, `npx tsc --noEmit`
 - Kategori dikelola lewat dialog (`components/ui/dialog.tsx`) di satu halaman tanpa pagination. Hapus ditolak bila kategori masih dipakai post (`23503`, FK `on delete restrict`). Opsi kategori untuk form dan filter post ada di `categories/hooks/useCategoryOptions.ts` (key `["categories", "options"]`).
 - Form post dipakai halaman tambah dan ubah. `video_url` wajib dan harus dikenali `getYouTubeId()` untuk VIDEO, juga saat DRAFT (constraint database), dan disimpan `null` untuk ARTICLE. `published_at` diisi `savePost()` hanya saat pertama kali PUBLISH, lalu tidak berubah lagi.
 - `categories_id` di form berupa string (value Select) dan diubah ke angka di action.
+
+`containers/settings/` (backlog 007):
+
+- Tabel `settings` berisi tiga baris per `key` (`whatsapp_number`, `terms_and_conditions`, `company_profile`) yang dibaca publik oleh sbn-donatur. Tiga Server Action terpisah (satu per kartu) menyimpan lewat `upsert` per `key` dengan server client (RLS admin).
+- Nomor WhatsApp disimpan sudah dinormalisasi (`62…`), dan HTML disanitasi `sanitizeRichText()`. Action mengembalikan nilai yang tersimpan, lalu form di-`reset()` ke nilai itu.
+- Schema dan action tidak bisa dikirim dari Server Component sebagai props, jadi `ContentForm` memilihnya sendiri lewat prop `kind` (`terms`/`profile`).
 
 ### Alur auth
 
@@ -155,4 +163,4 @@ export type ActionResult<T = undefined> =
 - Teks UI ditulis dalam Bahasa Indonesia.
 - Nominal rupiah ditampilkan lewat `formatRupiah()` di `lib/utils.ts` (`Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 })`).
 - Nama kolom foreign key memakai format `<tabel>_id` (contoh: `campaigns_id`, `users_id`).
-- Env ada di `.env.local` (di-gitignore). Variabel tanpa prefix `NEXT_PUBLIC_` (`SUPABASE_SERVICE_ROLE_KEY`, `MIDTRANS_SERVER_KEY`, `RESEND_API_KEY`) hanya boleh dipakai di server. `MIDTRANS_IS_PRODUCTION=false` sampai go-live.
+- Env ada di `.env.local` (di-gitignore). Variabel tanpa prefix `NEXT_PUBLIC_` (`SUPABASE_SERVICE_ROLE_KEY`, `MIDTRANS_SERVER_KEY`, `RESEND_API_KEY`) hanya boleh dipakai di server. `MIDTRANS_IS_PRODUCTION=false` sampai go-live. `NEXT_PUBLIC_DONATUR_URL` (lokal `http://localhost:3002`) dipakai link "Lihat di website" di halaman pengaturan; nilainya ditanam saat build/dev server dijalankan, jadi restart dev server setelah mengubahnya.
