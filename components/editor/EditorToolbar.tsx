@@ -14,12 +14,14 @@ import {
   ListOrderedIcon,
   Loader2Icon,
   Redo2Icon,
+  TableIcon,
   Undo2Icon,
   type LucideIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { COVER_EXTENSIONS } from "@/lib/cover";
 import { cn } from "@/lib/utils";
+import { TableToolbar } from "./TableToolbar";
 
 type ToolbarButtonProps = {
   label: string;
@@ -77,6 +79,7 @@ export function EditorToolbar({
       bulletList: editor.isActive("bulletList"),
       orderedList: editor.isActive("orderedList"),
       link: editor.isActive("link"),
+      table: editor.isActive("table"),
       canUndo: editor.can().undo(),
       canRedo: editor.can().redo(),
     }),
@@ -96,90 +99,113 @@ export function EditorToolbar({
   };
 
   return (
-    <div className="flex flex-wrap items-center gap-0.5 border-b p-1">
-      <ToolbarButton
-        label="Judul 1"
-        icon={Heading1Icon}
-        active={state.h1}
-        onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-      />
-      <ToolbarButton
-        label="Judul 2"
-        icon={Heading2Icon}
-        active={state.h2}
-        onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-      />
-      <ToolbarButton
-        label="Judul 3"
-        icon={Heading3Icon}
-        active={state.h3}
-        onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-      />
-      <ToolbarButton
-        label="Tebal"
-        icon={BoldIcon}
-        active={state.bold}
-        onClick={() => editor.chain().focus().toggleBold().run()}
-      />
-      <ToolbarButton
-        label="Miring"
-        icon={ItalicIcon}
-        active={state.italic}
-        onClick={() => editor.chain().focus().toggleItalic().run()}
-      />
-      <ToolbarButton
-        label="Daftar berpoin"
-        icon={ListIcon}
-        active={state.bulletList}
-        onClick={() => editor.chain().focus().toggleBulletList().run()}
-      />
-      <ToolbarButton
-        label="Daftar bernomor"
-        icon={ListOrderedIcon}
-        active={state.orderedList}
-        onClick={() => editor.chain().focus().toggleOrderedList().run()}
-      />
-      <ToolbarButton
-        label="Tautan"
-        icon={LinkIcon}
-        active={state.link}
-        onClick={setLink}
-      />
-      {onImageSelect && (
-        <>
-          <ToolbarButton
-            label={isUploadingImage ? "Mengunggah gambar" : "Gambar"}
-            icon={isUploadingImage ? Loader2Icon : ImageIcon}
-            disabled={isUploadingImage}
-            onClick={() => imageInputRef.current?.click()}
-          />
-          <input
-            ref={imageInputRef}
-            type="file"
-            accept={Object.keys(COVER_EXTENSIONS).join(",")}
-            multiple
-            hidden
-            onChange={(event) => {
-              const files = Array.from(event.target.files ?? []);
-              // Reset agar file yang sama bisa dipilih lagi.
-              event.target.value = "";
-              if (files.length > 0) onImageSelect(files);
-            }}
-          />
-        </>
-      )}
-      <ToolbarButton
-        label="Urungkan"
-        icon={Undo2Icon}
-        disabled={!state.canUndo}
-        onClick={() => editor.chain().focus().undo().run()}
-      />
-      <ToolbarButton
-        label="Ulangi"
-        icon={Redo2Icon}
-        disabled={!state.canRedo}
-        onClick={() => editor.chain().focus().redo().run()}
-      />
-    </div>
+    <>
+      <div className="flex flex-wrap items-center gap-0.5 border-b p-1">
+        <ToolbarButton
+          label="Judul 1"
+          icon={Heading1Icon}
+          active={state.h1}
+          onClick={() =>
+            editor.chain().focus().toggleHeading({ level: 1 }).run()
+          }
+        />
+        <ToolbarButton
+          label="Judul 2"
+          icon={Heading2Icon}
+          active={state.h2}
+          onClick={() =>
+            editor.chain().focus().toggleHeading({ level: 2 }).run()
+          }
+        />
+        <ToolbarButton
+          label="Judul 3"
+          icon={Heading3Icon}
+          active={state.h3}
+          onClick={() =>
+            editor.chain().focus().toggleHeading({ level: 3 }).run()
+          }
+        />
+        <ToolbarButton
+          label="Tebal"
+          icon={BoldIcon}
+          active={state.bold}
+          onClick={() => editor.chain().focus().toggleBold().run()}
+        />
+        <ToolbarButton
+          label="Miring"
+          icon={ItalicIcon}
+          active={state.italic}
+          onClick={() => editor.chain().focus().toggleItalic().run()}
+        />
+        <ToolbarButton
+          label="Daftar berpoin"
+          icon={ListIcon}
+          active={state.bulletList}
+          onClick={() => editor.chain().focus().toggleBulletList().run()}
+        />
+        <ToolbarButton
+          label="Daftar bernomor"
+          icon={ListOrderedIcon}
+          active={state.orderedList}
+          onClick={() => editor.chain().focus().toggleOrderedList().run()}
+        />
+        <ToolbarButton
+          label="Tautan"
+          icon={LinkIcon}
+          active={state.link}
+          onClick={setLink}
+        />
+        {onImageSelect && (
+          <>
+            <ToolbarButton
+              label={isUploadingImage ? "Mengunggah gambar" : "Gambar"}
+              icon={isUploadingImage ? Loader2Icon : ImageIcon}
+              disabled={isUploadingImage}
+              onClick={() => imageInputRef.current?.click()}
+            />
+            <input
+              ref={imageInputRef}
+              type="file"
+              accept={Object.keys(COVER_EXTENSIONS).join(",")}
+              multiple
+              hidden
+              onChange={(event) => {
+                const files = Array.from(event.target.files ?? []);
+                // Reset agar file yang sama bisa dipilih lagi.
+                event.target.value = "";
+                if (files.length > 0) onImageSelect(files);
+              }}
+            />
+          </>
+        )}
+        <ToolbarButton
+          label="Tabel"
+          icon={TableIcon}
+          active={state.table}
+          // Tabel bersarang tidak didukung: tombol nonaktif saat kursor di dalam tabel.
+          disabled={state.table}
+          onClick={() =>
+            editor
+              .chain()
+              .focus()
+              .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
+              .run()
+          }
+        />
+        <ToolbarButton
+          label="Urungkan"
+          icon={Undo2Icon}
+          disabled={!state.canUndo}
+          onClick={() => editor.chain().focus().undo().run()}
+        />
+        <ToolbarButton
+          label="Ulangi"
+          icon={Redo2Icon}
+          disabled={!state.canRedo}
+          onClick={() => editor.chain().focus().redo().run()}
+        />
+      </div>
+      {state.table && <TableToolbar editor={editor} />}
+    </>
   );
 }
