@@ -43,6 +43,7 @@ export function CampaignForm({ uuid, defaultValues }: CampaignFormProps) {
     control,
     handleSubmit,
     onSubmit,
+    onCancel,
     onTitleChange,
     onSlugChange,
     setError,
@@ -305,7 +306,7 @@ export function CampaignForm({ uuid, defaultValues }: CampaignFormProps) {
         <Button
           variant="outline"
           nativeButton={false}
-          render={<Link href="/campaigns" />}
+          render={<Link href="/campaigns" onClick={onCancel} />}
         >
           Batal
         </Button>

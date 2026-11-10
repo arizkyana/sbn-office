@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { useResetOnHide } from "@/hooks/use-reset-on-hide";
 import { slugify } from "@/lib/slug";
 import { savePost } from "../actions";
 import { postSchema, type PostInput } from "../PostForm.types";
@@ -25,6 +26,7 @@ export default function usePostForm({
   // Slug mengikuti judul sampai admin mengubahnya sendiri. Di halaman ubah,
   // slug tidak pernah berubah otomatis karena link lama bisa sudah dibagikan.
   const isSlugEdited = useRef(Boolean(uuid));
+  const resetOnHide = useResetOnHide();
 
   const form = useForm<PostInput>({
     defaultValues: defaultValues ?? {
@@ -40,6 +42,11 @@ export default function usePostForm({
     },
     resolver: zodResolver(postSchema),
   });
+
+  const resetForm = (values?: PostInput) => {
+    form.reset(values);
+    isSlugEdited.current = Boolean(uuid);
+  };
 
   const onTitleChange = (title: string) => {
     if (isSlugEdited.current) return;
@@ -60,6 +67,8 @@ export default function usePostForm({
 
     if (result.success) {
       toast.success("Post berhasil disimpan");
+      // Halaman ubah menyimpan nilai terbaru; halaman tambah kembali kosong.
+      resetOnHide.schedule(() => resetForm(uuid ? values : undefined));
       queryClient.invalidateQueries({ queryKey: ["posts"] });
       startTransition(() => router.push("/blog/posts"));
       return;
@@ -71,9 +80,13 @@ export default function usePostForm({
     form.setError("root", { message: result.message });
   };
 
+  // Batal: perubahan yang belum disimpan dibuang saat halaman ditinggalkan.
+  const onCancel = () => resetOnHide.schedule(() => resetForm());
+
   return {
     ...form,
     onSubmit,
+    onCancel,
     onTitleChange,
     onSlugChange,
     // Diisi CoverUpload agar tombol Simpan nonaktif selama cover diunggah.

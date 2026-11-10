@@ -46,6 +46,7 @@ export function PostForm({ uuid, defaultValues }: PostFormProps) {
     control,
     handleSubmit,
     onSubmit,
+    onCancel,
     onTitleChange,
     onSlugChange,
     setError,
@@ -371,7 +372,7 @@ export function PostForm({ uuid, defaultValues }: PostFormProps) {
           <Button
             variant="outline"
             nativeButton={false}
-            render={<Link href="/blog/posts" />}
+            render={<Link href="/blog/posts" onClick={onCancel} />}
           >
             Batal
           </Button>
