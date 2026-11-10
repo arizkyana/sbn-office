@@ -10,6 +10,7 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -20,6 +21,12 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { NAV_ITEMS, isActivePath } from "./navigation";
+
+// Item aktif: pill hijau lembut, bahasa visual yang sama dengan Bottom
+// Navigation sbn-donatur (backlog 009).
+const ACTIVE_ITEM_CLASS =
+  "data-active:bg-primary/10 data-active:font-semibold data-active:text-primary";
+const MENU_BUTTON_CLASS = `h-10 gap-3 text-sm font-medium [&_svg]:size-5 ${ACTIVE_ITEM_CLASS}`;
 
 type AppSidebarProps = {
   footer: ReactNode;
@@ -34,27 +41,33 @@ export function AppSidebar({ footer }: AppSidebarProps) {
   return (
     <Sidebar>
       <SidebarHeader>
-        <div className="flex items-center gap-2 px-2 py-1.5">
+        <div className="flex items-center gap-3 px-2 py-2">
           <Image
             src="/logo-sbn.jpg"
             alt="Logo Sobat Baik Nusantara"
-            width={32}
-            height={32}
-            className="rounded-full"
+            width={36}
+            height={36}
+            className="size-9 rounded-full"
           />
-          <span className="font-semibold">SBN Office</span>
+          <div className="flex min-w-0 flex-col leading-tight">
+            <span className="text-base font-bold">SBN Office</span>
+            <span className="text-sm text-muted-foreground">Panel Admin</span>
+          </div>
         </div>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
+          <SidebarGroupLabel className="text-sm">Menu</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {NAV_ITEMS.map((item) => (
                 <SidebarMenuItem key={item.href}>
                   {item.children ? (
                     <>
+                      {/* Induk sub-menu hanya berwarna saat anaknya aktif, tanpa pill. */}
                       <SidebarMenuButton
                         isActive={isActivePath(pathname, item.href)}
+                        className={`${MENU_BUTTON_CLASS} data-active:bg-transparent`}
                       >
                         <item.icon />
                         <span>{item.title}</span>
@@ -64,6 +77,7 @@ export function AppSidebar({ footer }: AppSidebarProps) {
                           <SidebarMenuSubItem key={child.href}>
                             <SidebarMenuSubButton
                               isActive={isActivePath(pathname, child.href)}
+                              className={`h-9 text-sm ${ACTIVE_ITEM_CLASS}`}
                               render={
                                 <Link
                                   href={child.href}
@@ -80,6 +94,7 @@ export function AppSidebar({ footer }: AppSidebarProps) {
                   ) : (
                     <SidebarMenuButton
                       isActive={isActivePath(pathname, item.href)}
+                      className={MENU_BUTTON_CLASS}
                       render={
                         <Link href={item.href} onClick={closeMobileSidebar} />
                       }
