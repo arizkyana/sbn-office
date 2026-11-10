@@ -7,7 +7,8 @@ import { uploadEditorImage } from "@/components/editor/actions";
 import { RichTextEditor } from "@/components/editor/RichTextEditor";
 import { CoverUpload } from "@/components/upload/CoverUpload";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Field,
   FieldDescription,
@@ -61,9 +62,7 @@ export function CampaignForm({ uuid, defaultValues }: CampaignFormProps) {
       className="flex flex-col gap-6 p-6"
       noValidate
     >
-      <h1 className="text-2xl font-semibold">
-        {isEdit ? "Ubah Campaign" : "Tambah Campaign"}
-      </h1>
+      <PageHeader title={isEdit ? "Ubah Campaign" : "Tambah Campaign"} />
 
       {errors.root && (
         <p role="alert" className="text-sm text-destructive">
@@ -73,6 +72,9 @@ export function CampaignForm({ uuid, defaultValues }: CampaignFormProps) {
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
         <Card>
+          <CardHeader>
+            <CardTitle>Konten</CardTitle>
+          </CardHeader>
           <CardContent>
             <FieldGroup>
               <Controller
@@ -166,6 +168,9 @@ export function CampaignForm({ uuid, defaultValues }: CampaignFormProps) {
         </Card>
 
         <Card>
+          <CardHeader>
+            <CardTitle>Publikasi</CardTitle>
+          </CardHeader>
           <CardContent>
             <FieldGroup>
               <Controller

@@ -10,8 +10,8 @@ export function DetailList({ items }: DetailListProps) {
     <dl className="grid gap-x-6 gap-y-3 sm:grid-cols-[10rem_minmax(0,1fr)]">
       {items.map((item) => (
         <div key={item.label} className="contents">
-          <dt className="text-muted-foreground">{item.label}</dt>
-          <dd className="font-medium break-words">{item.value}</dd>
+          <dt className="text-sm text-muted-foreground">{item.label}</dt>
+          <dd className="text-sm font-medium break-words">{item.value}</dd>
         </div>
       ))}
     </dl>
