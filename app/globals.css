@@ -40,6 +40,8 @@
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
   --color-brand-gold: var(--brand-gold);
+  --color-brand-gold-strong: var(--brand-gold-strong);
+  --color-primary-strong: var(--primary-strong);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -49,40 +51,55 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/* Shadow bernuansa hijau gelap agar kartu terlihat terangkat dari latar ber-tint. */
+@theme {
+  --shadow-card:
+    0 1px 2px oklch(0.3 0.05 156 / 0.06),
+    0 8px 20px -6px oklch(0.3 0.05 156 / 0.16);
+}
+
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  /* Nilai bersama dengan sbn-donatur (backlog 008/009): bila diubah, ubah juga di sana. */
+  /* Latar ber-tint hijau sangat muda; kartu tetap putih agar terlihat terangkat. */
+  --background: oklch(0.975 0.008 150);
+  --foreground: oklch(0.18 0.01 155);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  --card-foreground: oklch(0.18 0.01 155);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
+  --popover-foreground: oklch(0.18 0.01 155);
   --primary: oklch(0.463 0.079 156);
+  /* Ujung gradien tombol utama (from-primary to-primary-strong). */
+  --primary-strong: oklch(0.38 0.075 158);
   --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.95 0.012 150);
+  --secondary-foreground: oklch(0.25 0.02 155);
+  --muted: oklch(0.95 0.012 150);
+  /* Cukup gelap untuk kontras ≥ 4,5:1 di atas --background dan --muted. */
+  --muted-foreground: oklch(0.47 0.015 155);
+  --accent: oklch(0.95 0.012 150);
+  --accent-foreground: oklch(0.25 0.02 155);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
+  --border: oklch(0.91 0.012 150);
+  --input: oklch(0.86 0.015 150);
   --ring: oklch(0.463 0.079 156);
   --chart-1: oklch(0.463 0.079 156);
   --chart-2: oklch(0.745 0.13 88.5);
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
+  --radius: 0.75rem;
   --brand-gold: oklch(0.745 0.13 88.5);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
+  /* Teks emas gelap di atas latar emas lembut (badge warning). */
+  --brand-gold-strong: oklch(0.45 0.09 75);
+  /* Sidebar khusus office (donatur tidak punya sidebar): putih seperti kartu, garis ber-tint. */
+  --sidebar: oklch(1 0 0);
+  --sidebar-foreground: oklch(0.18 0.01 155);
   --sidebar-primary: oklch(0.463 0.079 156);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.95 0.012 150);
+  --sidebar-accent-foreground: oklch(0.25 0.02 155);
+  --sidebar-border: oklch(0.91 0.012 150);
+  --sidebar-ring: oklch(0.463 0.079 156);
 }
 
 .dark {
