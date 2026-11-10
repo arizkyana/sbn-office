@@ -3,6 +3,7 @@
 import { useEditorState, type Editor } from "@tiptap/react";
 import {
   BoldIcon,
+  Heading1Icon,
   Heading2Icon,
   Heading3Icon,
   ItalicIcon,
@@ -52,6 +53,7 @@ export function EditorToolbar({ editor }: { editor: Editor }) {
   const state = useEditorState({
     editor,
     selector: ({ editor }) => ({
+      h1: editor.isActive("heading", { level: 1 }),
       h2: editor.isActive("heading", { level: 2 }),
       h3: editor.isActive("heading", { level: 3 }),
       bold: editor.isActive("bold"),
@@ -79,6 +81,12 @@ export function EditorToolbar({ editor }: { editor: Editor }) {
 
   return (
     <div className="flex flex-wrap items-center gap-0.5 border-b p-1">
+      <ToolbarButton
+        label="Judul 1"
+        icon={Heading1Icon}
+        active={state.h1}
+        onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+      />
       <ToolbarButton
         label="Judul 2"
         icon={Heading2Icon}

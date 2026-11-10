@@ -7,6 +7,7 @@ import sanitizeHtml from "sanitize-html";
 const richTextOptions: sanitizeHtml.IOptions = {
   allowedTags: [
     "p",
+    "h1",
     "h2",
     "h3",
     "strong",

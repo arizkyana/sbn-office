@@ -20,7 +20,7 @@ type RichTextEditorProps = {
 // Gaya konten ditulis di sini karena office tidak memasang @tailwindcss/typography.
 const contentClassName = cn(
   "[&_.ProseMirror]:min-h-48 [&_.ProseMirror]:px-3 [&_.ProseMirror]:py-2 [&_.ProseMirror]:text-sm [&_.ProseMirror]:outline-none",
-  "[&_p]:my-2 [&_h2]:mt-4 [&_h2]:mb-2 [&_h2]:text-lg [&_h2]:font-semibold [&_h3]:mt-3 [&_h3]:mb-2 [&_h3]:text-base [&_h3]:font-semibold",
+  "[&_p]:my-2 [&_h1]:mt-4 [&_h1]:mb-2 [&_h1]:text-xl [&_h1]:font-bold [&_h2]:mt-4 [&_h2]:mb-2 [&_h2]:text-lg [&_h2]:font-semibold [&_h3]:mt-3 [&_h3]:mb-2 [&_h3]:text-base [&_h3]:font-semibold",
   "[&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-6",
   "[&_a]:text-primary [&_a]:underline [&_blockquote]:border-l-2 [&_blockquote]:pl-3 [&_blockquote]:text-muted-foreground",
 );
@@ -43,7 +43,7 @@ export function RichTextEditor({
     extensions: [
       // Fitur dibatasi agar HTML yang dihasilkan sama dengan allowlist sanitizer.
       StarterKit.configure({
-        heading: { levels: [2, 3] },
+        heading: { levels: [1, 2, 3] },
         code: false,
         codeBlock: false,
         link: { openOnClick: false, defaultProtocol: "https" },
