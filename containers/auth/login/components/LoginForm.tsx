@@ -1,8 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import { Loader2Icon } from "lucide-react";
 import { Controller } from "react-hook-form";
+import { SiteLogo } from "@/components/layout/SiteLogo";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -31,11 +31,9 @@ export default function LoginForm() {
   return (
     <Card className="w-full max-w-sm">
       <CardHeader className="items-center gap-2 text-center">
-        <Image
-          src="/logo-sbn.jpg"
+        <SiteLogo
+          size={48}
           alt="Logo Sobat Baik Nusantara"
-          width={48}
-          height={48}
           className="mx-auto size-12 rounded-full"
           preload
         />

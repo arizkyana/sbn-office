@@ -1,15 +1,30 @@
 import { z } from "zod";
 import { isEmptyHtml } from "@/lib/html";
+import { isLogoUrl } from "@/lib/logo";
 import { normalizeWhatsappNumber } from "@/lib/whatsapp";
 
-/** Baris tabel settings (data awal FND007). */
+/** Baris tabel settings (data awal FND007, `logo_url` dari migration site-assets). */
 export const SETTING_KEYS = [
+  "logo_url",
   "whatsapp_number",
   "terms_and_conditions",
   "company_profile",
 ] as const;
 
 export type SettingKey = (typeof SETTING_KEYS)[number];
+
+export const logoSchema = z.object({
+  // Kosong: aplikasi kembali memakai logo bawaan.
+  logo_url: z
+    .string()
+    .trim()
+    .refine(
+      (value) => value === "" || isLogoUrl(value),
+      "Unggah logo lewat tombol Ganti logo",
+    ),
+});
+
+export type LogoInput = z.infer<typeof logoSchema>;
 
 export const whatsappSchema = z.object({
   whatsapp_number: z

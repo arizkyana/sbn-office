@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist_Mono, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
+import { LogoProvider } from "@/components/layout/SiteLogo";
+import { getLogoSrc } from "@/lib/settings";
 import { cn } from "@/lib/utils";
 import { Providers } from "./providers";
 
@@ -15,13 +17,21 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "SBN Office",
-  description: "Panel admin pengelolaan campaign dan donasi Sobat Baik Nusantara",
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    title: "SBN Office",
+    description:
+      "Panel admin pengelolaan campaign dan donasi Sobat Baik Nusantara",
+    robots: { index: false, follow: false },
+    // Favicon mengikuti logo di pengaturan.
+    icons: { icon: await getLogoSrc() },
+  };
+}
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  // Di-cache (lib/settings.ts), jadi tidak menunda kerangka statis halaman.
+  const logoSrc = await getLogoSrc();
+
   return (
     <html
       lang="id"
@@ -34,7 +44,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       )}
     >
       <body className="h-full bg-background">
-        <Providers>{children}</Providers>
+        <Providers>
+          <LogoProvider src={logoSrc}>{children}</LogoProvider>
+        </Providers>
       </body>
     </html>
   );

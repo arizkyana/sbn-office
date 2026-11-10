@@ -1,16 +1,19 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { ImageIcon, Loader2Icon, UploadIcon } from "lucide-react";
+import type { Area } from "react-easy-crop";
 import { Button } from "@/components/ui/button";
-import {
-  COVER_EXTENSIONS,
-  getCoverFileError,
-  getCoverSourceError,
-} from "@/lib/cover";
+import { COVER_ASPECT, COVER_OUTPUT_TYPE } from "@/lib/cover";
+import { cropImage } from "@/lib/image-processing";
 import type { ActionResult } from "@/lib/types";
-import { CoverCropDialog } from "./CoverCropDialog";
+import { ImageCropDialog } from "./ImageCropDialog";
+import { useImageUpload } from "./use-image-upload";
+
+async function cropCover(src: string, area: Area) {
+  const blob = await cropImage(src, area);
+  return new File([blob], "cover.jpg", { type: COVER_OUTPUT_TYPE });
+}
 
 type CoverUploadProps = {
   id: string;
@@ -39,56 +42,8 @@ export function CoverUpload({
   onError,
   onUploadingChange,
 }: CoverUploadProps) {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [isUploading, setIsUploading] = useState(false);
-  // Object URL file asli yang sedang dibuka di dialog crop.
-  const [cropSrc, setCropSrc] = useState<string | null>(null);
-
-  // Object URL dicabut saat dialog ditutup atau komponen dilepas.
-  useEffect(() => {
-    if (!cropSrc) return;
-    return () => URL.revokeObjectURL(cropSrc);
-  }, [cropSrc]);
-
-  const changeUploading = (uploading: boolean) => {
-    setIsUploading(uploading);
-    onUploadingChange?.(uploading);
-  };
-
-  const handleSelect = (file: File) => {
-    const sourceError = getCoverSourceError(file);
-    if (sourceError) {
-      onError(sourceError);
-      return;
-    }
-    setCropSrc(URL.createObjectURL(file));
-  };
-
-  const handleCropped = async (file: File) => {
-    setCropSrc(null);
-
-    const fileError = getCoverFileError(file);
-    if (fileError) {
-      onError(fileError);
-      return;
-    }
-
-    changeUploading(true);
-    try {
-      const result = await upload(file);
-      // Session habis: requireAdmin() melakukan redirect, tidak ada hasil.
-      if (!result) return;
-      if (!result.success) {
-        onError(result.message);
-        return;
-      }
-      if (result.data) onChange(result.data.url);
-    } catch {
-      onError("Cover gagal diunggah. Coba lagi.");
-    } finally {
-      changeUploading(false);
-    }
-  };
+  const { isUploading, openFilePicker, inputProps, cropDialogProps } =
+    useImageUpload({ upload, onChange, onError, onUploadingChange });
 
   return (
     <div className="flex flex-col gap-2">
@@ -119,33 +74,21 @@ export function CoverUpload({
           </div>
         )}
       </div>
-      <input
-        ref={inputRef}
-        id={id}
-        type="file"
-        accept={Object.keys(COVER_EXTENSIONS).join(",")}
-        className="sr-only"
-        aria-invalid={invalid}
-        onChange={(event) => {
-          const file = event.target.files?.[0];
-          // Reset agar file yang sama bisa dipilih lagi setelah gagal.
-          event.target.value = "";
-          if (file) handleSelect(file);
-        }}
-      />
+      <input {...inputProps} id={id} aria-invalid={invalid} />
       <Button
         type="button"
         variant="outline"
         disabled={isUploading}
-        onClick={() => inputRef.current?.click()}
+        onClick={openFilePicker}
       >
         <UploadIcon />
         {value ? "Ganti cover" : "Pilih gambar"}
       </Button>
-      <CoverCropDialog
-        src={cropSrc}
-        onCancel={() => setCropSrc(null)}
-        onConfirm={handleCropped}
+      <ImageCropDialog
+        {...cropDialogProps}
+        title="Atur cover"
+        aspect={COVER_ASPECT}
+        crop={cropCover}
       />
     </div>
   );

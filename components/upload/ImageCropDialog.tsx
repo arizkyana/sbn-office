@@ -14,8 +14,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Slider } from "@/components/ui/slider";
-import { COVER_ASPECT, COVER_OUTPUT_TYPE } from "@/lib/cover";
-import { cropImage } from "@/lib/image-processing";
 
 const MIN_ZOOM = 1;
 const MAX_ZOOM = 3;
@@ -25,13 +23,28 @@ function clampZoom(zoom: number) {
   return Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, zoom));
 }
 
-type CoverCropperProps = {
+type CropOptions = {
+  /** Rasio crop, contoh 16 / 9 untuk cover atau 1 untuk logo. */
+  aspect: number;
+  /** Bentuk bingkai crop; hanya tampilan, hasilnya tetap persegi panjang. */
+  cropShape?: "rect" | "round";
+  /** Memotong area crop (piksel gambar asli) menjadi file yang siap diunggah. */
+  crop: (src: string, area: Area) => Promise<File>;
+};
+
+type ImageCropperProps = CropOptions & {
   src: string;
   onConfirm: (file: File) => void;
 };
 
 // Dipisah dari dialog agar posisi dan zoom kembali ke awal setiap gambar baru.
-function CoverCropper({ src, onConfirm }: CoverCropperProps) {
+function ImageCropper({
+  src,
+  aspect,
+  cropShape,
+  crop: cropFile,
+  onConfirm,
+}: ImageCropperProps) {
   const [crop, setCrop] = useState<Point>({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(MIN_ZOOM);
   const [area, setArea] = useState<Area | null>(null);
@@ -43,8 +56,7 @@ function CoverCropper({ src, onConfirm }: CoverCropperProps) {
     setIsProcessing(true);
     setError(null);
     try {
-      const blob = await cropImage(src, area);
-      onConfirm(new File([blob], "cover.jpg", { type: COVER_OUTPUT_TYPE }));
+      onConfirm(await cropFile(src, area));
     } catch {
       setError("Gambar gagal diproses. Coba pilih gambar lain.");
     } finally {
@@ -59,7 +71,8 @@ function CoverCropper({ src, onConfirm }: CoverCropperProps) {
           image={src}
           crop={crop}
           zoom={zoom}
-          aspect={COVER_ASPECT}
+          aspect={aspect}
+          cropShape={cropShape}
           minZoom={MIN_ZOOM}
           maxZoom={MAX_ZOOM}
           onCropChange={setCrop}
@@ -126,19 +139,23 @@ function CoverCropper({ src, onConfirm }: CoverCropperProps) {
   );
 }
 
-type CoverCropDialogProps = {
+type ImageCropDialogProps = CropOptions & {
   /** Object URL gambar yang dipilih; `null` berarti dialog tertutup. */
   src: string | null;
+  /** Judul dialog, contoh "Atur cover". */
+  title: string;
   onCancel: () => void;
   onConfirm: (file: File) => void;
 };
 
-/** Dialog crop dan zoom cover ke rasio 16:9 sebelum diunggah. */
-export function CoverCropDialog({
+/** Dialog crop dan zoom gambar (cover, logo) sebelum diunggah. */
+export function ImageCropDialog({
   src,
+  title,
   onCancel,
   onConfirm,
-}: CoverCropDialogProps) {
+  ...cropOptions
+}: ImageCropDialogProps) {
   return (
     <Dialog
       open={src !== null}
@@ -148,13 +165,20 @@ export function CoverCropDialog({
     >
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Atur cover</DialogTitle>
+          <DialogTitle>{title}</DialogTitle>
           <DialogDescription>
             Geser gambar untuk mengatur posisi. Gunakan slider, scroll, atau
             cubit untuk zoom.
           </DialogDescription>
         </DialogHeader>
-        {src && <CoverCropper key={src} src={src} onConfirm={onConfirm} />}
+        {src && (
+          <ImageCropper
+            key={src}
+            src={src}
+            onConfirm={onConfirm}
+            {...cropOptions}
+          />
+        )}
       </DialogContent>
     </Dialog>
   );

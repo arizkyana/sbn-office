@@ -4,7 +4,8 @@ import { COVER_EXTENSIONS, getCoverFileError } from "@/lib/cover";
 import { createClient } from "@/lib/supabase/server";
 import type { ActionResult } from "@/lib/types";
 
-export type ImageBucket = "campaign-covers" | "post-covers" | "content-images";
+export type ImageBucket =
+  "campaign-covers" | "post-covers" | "content-images" | "site-assets";
 
 /**
  * Upload gambar ke bucket publik dengan nama acak, lalu kembalikan URL publiknya.
@@ -25,7 +26,7 @@ export async function uploadImage(
     contentType: file.type,
   });
   if (error) {
-    return { success: false, message: "Cover gagal diunggah. Coba lagi." };
+    return { success: false, message: "Gambar gagal diunggah. Coba lagi." };
   }
 
   const { data } = bucket.getPublicUrl(path);

@@ -4,9 +4,11 @@ import {
   COVER_OUTPUT_TYPE,
   COVER_OUTPUT_WIDTH,
 } from "@/lib/cover";
+import { LOGO_OUTPUT_SIZE, LOGO_OUTPUT_TYPE } from "@/lib/logo";
 
-// Khusus browser: memakai Image dan canvas. Dipakai crop cover (CoverCropDialog)
-// dan gambar di dalam konten editor (components/editor/image-upload.ts).
+// Khusus browser: memakai Image dan canvas. Dipakai crop cover dan logo
+// (ImageCropDialog) serta gambar di dalam konten editor
+// (components/editor/image-upload.ts).
 
 type Area = { x: number; y: number; width: number; height: number };
 
@@ -19,12 +21,16 @@ function loadImage(src: string) {
   });
 }
 
-/** Menggambar `area` dari gambar ke canvas berukuran `width × height`, lalu JPEG. */
-function drawToJpeg(
+/**
+ * Menggambar `area` dari gambar ke canvas berukuran `width × height`, lalu
+ * mengubahnya ke `type` (bawaan JPEG).
+ */
+function drawToBlob(
   image: HTMLImageElement,
   area: Area,
   width: number,
   height: number,
+  type = COVER_OUTPUT_TYPE,
 ) {
   const canvas = document.createElement("canvas");
   canvas.width = width;
@@ -34,8 +40,10 @@ function drawToJpeg(
   if (!context) throw new Error("Canvas tidak didukung browser ini");
 
   // JPEG tidak punya transparansi: tanpa latar putih, PNG transparan jadi hitam.
-  context.fillStyle = "#ffffff";
-  context.fillRect(0, 0, width, height);
+  if (type === "image/jpeg") {
+    context.fillStyle = "#ffffff";
+    context.fillRect(0, 0, width, height);
+  }
   context.imageSmoothingQuality = "high";
   context.drawImage(
     image,
@@ -53,7 +61,7 @@ function drawToJpeg(
     canvas.toBlob(
       (blob) =>
         blob ? resolve(blob) : reject(new Error("Gambar gagal diproses")),
-      COVER_OUTPUT_TYPE,
+      type,
       COVER_OUTPUT_QUALITY,
     );
   });
@@ -67,7 +75,18 @@ export async function cropImage(src: string, area: Area) {
   const image = await loadImage(src);
   const width = Math.round(Math.min(area.width, COVER_OUTPUT_WIDTH));
   const height = Math.round(width / COVER_ASPECT);
-  return drawToJpeg(image, area, width, height);
+  return drawToBlob(image, area, width, height);
+}
+
+/**
+ * Memotong area crop persegi menjadi PNG dengan sisi maksimal
+ * `LOGO_OUTPUT_SIZE`. Latar transparan dipertahankan, dan gambar yang lebih
+ * kecil tidak diperbesar.
+ */
+export async function cropLogo(src: string, area: Area) {
+  const image = await loadImage(src);
+  const size = Math.round(Math.min(area.width, LOGO_OUTPUT_SIZE));
+  return drawToBlob(image, area, size, size, LOGO_OUTPUT_TYPE);
 }
 
 /**
@@ -80,5 +99,5 @@ export async function resizeImage(src: string) {
   const width = Math.min(naturalWidth, COVER_OUTPUT_WIDTH);
   const height = Math.round((naturalHeight * width) / naturalWidth);
   const area = { x: 0, y: 0, width: naturalWidth, height: naturalHeight };
-  return drawToJpeg(image, area, width, height);
+  return drawToBlob(image, area, width, height);
 }

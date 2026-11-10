@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ReactNode } from "react";
@@ -21,6 +20,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { NAV_ITEMS, isActivePath } from "./navigation";
+import { SiteLogo } from "./SiteLogo";
 
 // Item aktif: pill hijau lembut, bahasa visual yang sama dengan Bottom
 // Navigation sbn-donatur (backlog 009).
@@ -42,11 +42,9 @@ export function AppSidebar({ footer }: AppSidebarProps) {
     <Sidebar>
       <SidebarHeader>
         <div className="flex items-center gap-3 px-2 py-2">
-          <Image
-            src="/logo-sbn.jpg"
+          <SiteLogo
+            size={36}
             alt="Logo Sobat Baik Nusantara"
-            width={36}
-            height={36}
             className="size-9 rounded-full"
           />
           <div className="flex min-w-0 flex-col leading-tight">
