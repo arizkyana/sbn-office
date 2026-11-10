@@ -14,6 +14,8 @@ const nextConfig: NextConfig = {
       new URL(
         `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/**`,
       ),
+      // Thumbnail video YouTube untuk post video tanpa cover (lib/youtube.ts).
+      new URL("https://i.ytimg.com/vi/**"),
     ],
   },
   cacheComponents: true,
